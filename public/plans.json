@@ -1,0 +1,120 @@
+{
+  "settings": {
+    "endpoint": "",
+    "bookingUrl": "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ1Q8gq1TkHZIXavogiSe8cKRCuFSOzGxsQJu9oksFk7COsEV5nyFfKEbr_3VWSO_biPIfNgQI6-",
+    "callLength": "45-minute",
+    "followUp": "within 1–2 business days",
+    "contactEmail": "garrett.austen@tetontutors.org",
+    "grades": ["5", "6", "7", "8", "9", "10", "11", "12"],
+    "dropInPrice": 230
+  },
+
+  "foundations": [
+    {
+      "id": "two-day-independent",
+      "name": "2-Day Independent Membership",
+      "price": 600,
+      "desc": "Independent work time on two set days a week.",
+      "includes": [
+        "Access to the learning space 2 set days a week",
+        "Independent work time in a calm, structured room",
+        "Light supervision and accountability",
+        "Can add clubs, classes, and tutoring"
+      ],
+      "memberPricing": false
+    },
+    {
+      "id": "independent",
+      "name": "Independent Membership",
+      "price": 1200,
+      "desc": "Weekday access to the learning space for independent learners.",
+      "includes": [
+        "Access to the learning space every weekday",
+        "Independent work time in a calm, structured room",
+        "Light supervision and accountability",
+        "Can add clubs, classes, and tutoring"
+      ],
+      "memberPricing": false
+    },
+    {
+      "id": "two-day-radacad",
+      "name": "2-Day RadAcad Membership",
+      "price": 1490,
+      "desc": "Two set days a week, plus an hour of one-on-one tutoring.",
+      "includes": [
+        "Access 2 set days a week",
+        "1 hour of one-on-one tutoring every week",
+        "Group PE on the days you attend",
+        "Monthly group ski day and Friday field trip"
+      ],
+      "memberPricing": false
+    },
+    {
+      "id": "full",
+      "name": "Full RadAcad Membership",
+      "price": 2650,
+      "flag": "Most popular",
+      "desc": "Unlimited access with coaching, PE, and the most support.",
+      "includes": [
+        "Unlimited access to the learning space and community",
+        "2 hours of executive function coaching every week",
+        "Optional weekly one-on-one hour for a personal project",
+        "3 hours of group PE a week",
+        "Monthly group ski day and Friday field trip",
+        "15% off all other RadAcad and Teton Tutors services"
+      ],
+      "memberPricing": true
+    }
+  ],
+
+  "partnerships": [
+    {
+      "id": "aeon",
+      "name": "AEON School + Full Membership",
+      "price": 4200,
+      "desc": "Project-based, mastery-focused online learning, with daily structure and in-person guidance here.",
+      "includes": ["AEON School tuition", "Full RadAcad Membership"],
+      "memberPricing": true
+    },
+    {
+      "id": "icl",
+      "name": "ICL Academy + Full Membership",
+      "price": 3850,
+      "desc": "A traditional, independent online model, with daily structure and an in-person community.",
+      "includes": ["ICL Academy tuition", "Full RadAcad Membership"],
+      "memberPricing": true
+    },
+    {
+      "id": "laurel",
+      "name": "Laurel Springs + Full Membership",
+      "price": 3650,
+      "desc": "Accredited, self-paced college prep, with in-person oversight to keep students on track.",
+      "includes": ["Laurel Springs tuition", "Full RadAcad Membership"],
+      "memberPricing": true
+    }
+  ],
+
+  "subjectClass": {
+    "name": "One-on-one subject",
+    "detail": "3 hours a week of personal instruction, all year, built around your student.",
+    "price": 1950,
+    "memberPrice": 1650
+  },
+
+  "subjects": [
+    "Math (Algebra I & II)",
+    "Calculus / AP Calculus",
+    "Chemistry",
+    "Science",
+    "English & essay writing",
+    "Reading support (Orton-Gillingham, Wilson)",
+    "History & AP Gov",
+    "Spanish",
+    "French",
+    "Latin",
+    "ESL",
+    "Coding",
+    "Test prep (SAT, ACT, SSAT, ISEE)",
+    "Something else"
+  ]
+}

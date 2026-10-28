@@ -1,0 +1,5 @@
+# Cloudflare Pages headers.
+# Lets radicalmindsacademy.org load plans.json and builder.css from this site.
+/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=0, must-revalidate
