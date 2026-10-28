@@ -6,100 +6,104 @@
     "followUp": "within 1–2 business days",
     "contactEmail": "garrett.austen@tetontutors.org",
     "grades": ["5", "6", "7", "8", "9", "10", "11", "12"],
-    "dropInPrice": 230
+    "payments": 9,
+    "esaAnnual": 7000,
+    "foundationUrl": "https://radacadfoundation.org/apply",
+    "starts": [
+      { "id": "jan2027", "label": "January 2027", "detail": "Spring semester, January to June 15" },
+      { "id": "fall2027", "label": "Fall 2027", "detail": "Full school year, September to June 15" }
+    ]
   },
 
-  "foundations": [
-    {
-      "id": "two-day-independent",
-      "name": "2-Day Independent Membership",
-      "price": 600,
-      "desc": "Independent work time on two set days a week.",
-      "includes": [
-        "Access to the learning space 2 set days a week",
-        "Independent work time in a calm, structured room",
-        "Light supervision and accountability",
-        "Can add clubs, classes, and tutoring"
-      ],
-      "memberPricing": false
-    },
-    {
-      "id": "independent",
-      "name": "Independent Membership",
-      "price": 1200,
-      "desc": "Weekday access to the learning space for independent learners.",
-      "includes": [
-        "Access to the learning space every weekday",
-        "Independent work time in a calm, structured room",
-        "Light supervision and accountability",
-        "Can add clubs, classes, and tutoring"
-      ],
-      "memberPricing": false
-    },
-    {
-      "id": "two-day-radacad",
-      "name": "2-Day RadAcad Membership",
-      "price": 1490,
-      "desc": "Two set days a week, plus an hour of one-on-one tutoring.",
-      "includes": [
-        "Access 2 set days a week",
-        "1 hour of one-on-one tutoring every week",
-        "Group PE on the days you attend",
-        "Monthly group ski day and Friday field trip"
-      ],
-      "memberPricing": false
-    },
-    {
-      "id": "full",
-      "name": "Full RadAcad Membership",
-      "price": 2650,
-      "flag": "Most popular",
-      "desc": "Unlimited access with coaching, PE, and the most support.",
-      "includes": [
-        "Unlimited access to the learning space and community",
-        "2 hours of executive function coaching every week",
-        "Optional weekly one-on-one hour for a personal project",
-        "3 hours of group PE a week",
-        "Monthly group ski day and Friday field trip",
-        "15% off all other RadAcad and Teton Tutors services"
-      ],
-      "memberPricing": true
-    }
-  ],
-
-  "partnerships": [
-    {
-      "id": "aeon",
-      "name": "AEON School + Full Membership",
-      "price": 4200,
-      "desc": "Project-based, mastery-focused online learning, with daily structure and in-person guidance here.",
-      "includes": ["AEON School tuition", "Full RadAcad Membership"],
-      "memberPricing": true
-    },
-    {
-      "id": "icl",
-      "name": "ICL Academy + Full Membership",
-      "price": 3850,
-      "desc": "A traditional, independent online model, with daily structure and an in-person community.",
-      "includes": ["ICL Academy tuition", "Full RadAcad Membership"],
-      "memberPricing": true
-    },
-    {
-      "id": "laurel",
-      "name": "Laurel Springs + Full Membership",
-      "price": 3650,
-      "desc": "Accredited, self-paced college prep, with in-person oversight to keep students on track.",
-      "includes": ["Laurel Springs tuition", "Full RadAcad Membership"],
-      "memberPricing": true
-    }
-  ],
-
-  "subjectClass": {
-    "name": "One-on-one subject",
-    "detail": "3 hours a week of personal instruction, all year, built around your student.",
-    "price": 1950,
-    "memberPrice": 1650
+  "membership": {
+    "twoDayPrice": 350,
+    "extraDayPrice": 300,
+    "fullWeekPrice": 1200,
+    "dropInPrice": 230,
+    "includes": [
+      "The learning space on your membership days",
+      "Daily goals with an academic coach, plus weekly and monthly goals",
+      "A note home every day with goals, grades, and missing work",
+      "Field trips and ski days"
+    ],
+    "guarantee": "If RadAcad isn’t the right fit, we’ll refund your first month of membership. Just let us know."
   },
+
+  "addOns": {
+    "close": {
+      "name": "Close support",
+      "price": 250,
+      "minGrade": 9,
+      "desc": "Check-ins every hour on every membership day, for high schoolers who need more structure."
+    },
+    "checkin": {
+      "name": "Weekly check-in session",
+      "price": 325,
+      "desc": "One 30-minute session a week with a coach to plan the week and review what’s due."
+    },
+    "coaching": {
+      "name": "One-on-one coaching or tutoring",
+      "price": 650,
+      "max": 5,
+      "desc": "One session a week with a coach or tutor, $650 a month. Add more sessions for more support."
+    },
+    "subject": {
+      "name": "Single subject class",
+      "price": 1950,
+      "max": 3,
+      "desc": "A full class in one subject, built around your student. Meets three hours a week, all year."
+    }
+  },
+
+  "smallGroup": {
+    "name": "Small group class",
+    "minGrade": 6,
+    "maxGrade": 8,
+    "fallFee": 1250,
+    "springFee": 1800,
+    "desc": "Classes with other students, PE included. Two 90-minute sessions a week, billed by the semester.",
+    "blocks": [
+      { "id": "mw", "label": "Monday/Wednesday", "days": ["Mon", "Wed"], "classes": [] },
+      { "id": "tt", "label": "Tuesday/Thursday", "days": ["Tue", "Thu"], "classes": [] }
+    ]
+  },
+
+  "icl": {
+    "name": "ICL Academy",
+    "desc": "ICL Academy is a RadAcad partner school. Your student takes ICL courses here, with a coach keeping them on track.",
+    "packages": {
+      "live": { "name": "Full week + ICL live", "price": 2875, "desc": "Full-week membership plus full-time live ICL Academy enrollment.", "deposit": 450 },
+      "async": { "name": "Full week + ICL async", "price": 2425, "desc": "Full-week membership plus full-time self-paced ICL Academy enrollment.", "deposit": 300 }
+    },
+    "alaCarte": {
+      "live": { "name": "ICL live course", "price": 280 },
+      "async": { "name": "ICL self-paced course", "price": 225 },
+      "max": 3
+    },
+    "janNote": "January 2027 starts pay five payments, January through May, and stay at RadAcad through June 15 for capstone projects, portfolio websites, and field days.",
+    "janGuarantee": "January 2027 guarantee: withdraw by January 31 for a full refund, minus the non-refundable ICL deposit."
+  },
+
+  "aeon": {
+    "hidden": true,
+    "name": "Premium: full week + Aeon School",
+    "monthly": 1200,
+    "semesterFee": 10500,
+    "desc": "Aeon is a seminar-style partner school aimed at selective college admissions. Aeon tuition is paid by the semester, in advance."
+  },
+
+  "presets": [
+    { "id": "full", "name": "Full-week membership", "built": "Full week", "config": { "days": 5 } },
+    { "id": "two", "name": "Two-day membership", "built": "Up to two days a week", "config": { "days": 2 } },
+    { "id": "online-checkin", "name": "Online school check-in", "built": "Two-day membership + weekly check-in session", "config": { "days": 2, "checkin": true } },
+    { "id": "online-coaching", "name": "Online school coaching", "built": "Two-day membership + one coaching session a week", "config": { "days": 2, "coaching": 1 } },
+    { "id": "one-class", "name": "One small group class", "built": "Two-day membership + one Mon/Wed class", "config": { "days": 2, "groups": ["mw"] }, "grades": [6, 8] },
+    { "id": "full-coaching", "name": "Full week + coaching", "built": "Full week + two coaching sessions a week", "config": { "days": 5, "coaching": 2 } },
+    { "id": "icl-live", "name": "Full week + ICL live", "built": "Online school package, live", "config": { "icl": { "mode": "package", "type": "live" } } },
+    { "id": "icl-async", "name": "Full week + ICL async", "built": "Online school package, self-paced", "config": { "icl": { "mode": "package", "type": "async" } } },
+    { "id": "ms-mix", "name": "Middle school mix", "built": "Full week + 3 ICL live courses + 2 small group classes", "config": { "days": 5, "icl": { "mode": "alacarte", "type": "live", "courses": 3 }, "groups": ["mw", "tt"] }, "grades": [6, 8] },
+    { "id": "full-two-subjects", "name": "Full week + two single subject classes", "built": "Full week + 2 single subject classes", "config": { "days": 5, "subjects": 2 } }
+  ],
 
   "subjects": [
     "Math (Algebra I & II)",

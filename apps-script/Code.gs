@@ -25,8 +25,9 @@ var CONFIG = {
 var HEADERS = [
   'Submitted', 'Parent first', 'Parent last', 'Email', 'Phone',
   'Student', 'Grade', 'Start', 'Heard about us',
-  'Learning now', 'Days a week', 'Needs most',
-  'We suggested', 'Membership', 'Subjects', 'Monthly total', 'Notes', 'Page', 'Status'
+  'Coursework', 'Days asked for', 'Needs most', 'We suggested',
+  'Plan', 'Days', 'Line items', 'Monthly total', 'Class fees', 'ESA estimate',
+  'Notes', 'Page', 'Status'
 ];
 
 /** Run once from the editor to create the Leads tab and approve email permissions. */
@@ -50,12 +51,12 @@ function doPost(e) {
 
     var p = d.parent || {}, s = d.student || {}, plan = d.plan || {}, a = d.answers || {};
     var email = String(p.email || '').trim();
-    if (!p.first || !p.last || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !plan.foundation) {
+    if (!p.first || !p.last || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !plan.lines || !plan.lines.length) {
       return json_({ ok: false, error: 'Missing required fields' });
     }
 
-    var classes = (plan.classes || []).map(function (c) { return clip_(c.subject, 80); });
-    var total = Number(plan.total) || 0;
+    var items = plan.lines.map(function (l) { return clip_(l.label, 120) + ' ' + money_(l.amount); });
+    var total = Number(plan.monthly) || 0;
 
     var lock = LockService.getScriptLock();
     lock.waitLock(10000);
@@ -66,16 +67,17 @@ function doPost(e) {
         new Date(),
         clip_(p.first), clip_(p.last), clip_(email), clip_(p.phone),
         clip_(s.first), clip_(s.grade), clip_(d.start), clip_(d.heard),
-        clip_(a.learning), clip_(a.days), clip_((a.needs || []).join(', ')),
-        clip_(a.suggested), clip_(plan.foundation.name), classes.join(', '), total,
+        clip_(a.coursework), clip_(a.days), clip_((a.needs || []).join(', ')), clip_(a.suggested),
+        clip_(plan.name), clip_((plan.days || []).join(', ')), clip_(items.join('; '), 1000), total,
+        clip_(plan.classFees), clip_(plan.esa),
         clip_(d.notes, 2000), clip_(d.page, 300), 'New'
       ]]);
     } finally {
       lock.releaseLock();
     }
 
-    sendStaffEmail_(d, classes, total);
-    sendFamilyEmail_(d, classes, total);
+    sendStaffEmail_(d, total);
+    sendFamilyEmail_(d, total);
 
     return json_({ ok: true });
   } catch (err) {
@@ -86,17 +88,17 @@ function doPost(e) {
 
 /* ---------- emails ---------- */
 
-function sendStaffEmail_(d, classes, total) {
+function sendStaffEmail_(d, total) {
   var p = d.parent, s = d.student, a = d.answers || {};
-  var subject = 'New plan: ' + p.first + ' ' + p.last + ' (' + s.first + ', grade ' + s.grade + ') · ' + money_(total) + '/mo';
+  var subject = 'New plan: ' + p.first + ' ' + p.last + ' (' + s.first + (s.grade ? ', grade ' + s.grade : '') + ') ' + money_(total) + '/mo';
   var rows = [
     ['Parent', p.first + ' ' + p.last],
     ['Email', p.email],
     ['Phone', p.phone],
-    ['Student', s.first + ', grade ' + s.grade],
-    ['Hoping to start', d.start || '—'],
-    ['Learning now', a.learning || '—'],
-    ['Days a week', a.days || '—'],
+    ['Student', s.first + (s.grade ? ', grade ' + s.grade : '')],
+    ['Starting', d.start || '—'],
+    ['Coursework', a.coursework || '—'],
+    ['Days asked for', a.days || '—'],
     ['Needs most', (a.needs || []).join(', ') || '—'],
     ['We suggested', a.suggested || '—'],
     ['Heard about us', d.heard || '—'],
@@ -119,12 +121,11 @@ function sendStaffEmail_(d, classes, total) {
     subject: subject,
     htmlBody: html,
     body: 'New plan from ' + p.first + ' ' + p.last + ' (' + p.email + ', ' + p.phone + '). ' +
-          'Membership: ' + d.plan.foundation.name + '. Subjects: ' + (classes.join(', ') || 'none') +
-          '. Estimated total: ' + money_(total) + '/mo.'
+          'Plan: ' + d.plan.name + '. Estimated total: ' + money_(total) + '/mo.'
   });
 }
 
-function sendFamilyEmail_(d, classes, total) {
+function sendFamilyEmail_(d, total) {
   var p = d.parent, s = d.student;
   var html =
     '<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#000;max-width:560px">' +
@@ -145,15 +146,12 @@ function sendFamilyEmail_(d, classes, total) {
     subject: 'Your RadAcad plan for ' + s.first,
     htmlBody: html,
     body: 'Hi ' + p.first + ', thanks for building a plan for ' + s.first + '. ' +
-          'Membership: ' + d.plan.foundation.name + '. Subjects: ' + (classes.join(', ') || 'none') +
-          '. Estimated total: ' + money_(total) + '/mo. Book your intro call: ' + CONFIG.BOOKING_URL
+          'Your plan: ' + d.plan.name + '. Estimated total: ' + money_(total) + '/mo. Book your intro call: ' + CONFIG.BOOKING_URL
   });
 }
 
 function planTable_(plan, total) {
-  var rows = [[plan.foundation.name, plan.foundation.price]].concat(
-    (plan.classes || []).map(function (c) { return [c.subject + ' (one-on-one, 3 hrs a week)', c.price]; })
-  );
+  var rows = (plan.lines || []).map(function (l) { return [l.label, l.amount]; });
   return '<table cellpadding="8" style="border-collapse:collapse;width:100%;max-width:520px;border:1px solid #ddd">' +
     rows.map(function (r) {
       return '<tr><td style="border-bottom:1px solid #eee">' + esc_(r[0]) + '</td>' +
@@ -161,7 +159,10 @@ function planTable_(plan, total) {
     }).join('') +
     '<tr><td style="font-weight:bold">Estimated monthly total</td>' +
     '<td style="font-weight:bold;text-align:right;color:#259991;white-space:nowrap">' + money_(total) + '/mo</td></tr>' +
-    '</table>';
+    '</table>' +
+    (plan.classFees ? '<p style="margin:8px 0 0;font-size:14px">Plus small group class fees: ' + esc_(plan.classFees) + ', billed at enrollment.</p>' : '') +
+    (plan.esa ? '<p style="margin:4px 0 0;font-size:14px;color:#1b6f69">' + esc_(plan.esa) + ' (estimate).</p>' : '') +
+    (plan.days && plan.days.length ? '<p style="margin:4px 0 0;font-size:14px;color:#555">Days: ' + esc_(plan.days.join(', ')) + '</p>' : '');
 }
 
 /* ---------- helpers ---------- */
@@ -173,7 +174,7 @@ function getLeadsSheet_() {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
     sheet.setFrozenRows(1);
     sheet.getRange('A:A').setNumberFormat('mmm d, yyyy h:mm am/pm');
-    sheet.getRange('P:P').setNumberFormat('$#,##0');
+    sheet.getRange('Q:Q').setNumberFormat('$#,##0');
   }
   return sheet;
 }
