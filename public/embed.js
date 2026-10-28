@@ -4,7 +4,7 @@
  *
  * Drop into a Squarespace Code Block:
  *   <div id="plan-builder"></div>
- *   <script src="https://YOUR-PROJECT.pages.dev/embed.js" defer></script>
+ *   <script src="https://radacad-plan-builder.garrett-austen.workers.dev/embed.js" defer></script>
  *
  * Prices, plans and settings live in plans.json next to this file.
  * Renders inside a shadow root so Squarespace styles can't break it, but still uses the
@@ -140,26 +140,26 @@
     var app = root.querySelector('.rma');
     app.innerHTML =
       '<div class="intro">' +
-        '<p class="tagline">School differently.</p>' +
-        '<p class="lede">Three quick questions, then we’ll suggest a starting plan. Change anything you like and send it to us.</p>' +
-        '<details class="how"><summary>How does RadAcad work?</summary><div class="how-body">' +
-          '<p>RadAcad isn’t a school. It’s what your student does instead. Students are homeschooled or enrolled in an online school, and RadAcad is where their day happens: the space, the schedule, the coaching, and the community.</p>' +
-          '<p>Every plan starts with a membership. Add one-on-one subjects if your student wants them, and we’ll fine-tune the rest together on a call.</p>' +
-        '</div></details>' +
+      '<p class="tagline">School differently.</p>' +
+      '<p class="lede">Three quick questions, then we’ll suggest a starting plan. Change anything you like and send it to us.</p>' +
+      '<details class="how"><summary>How does RadAcad work?</summary><div class="how-body">' +
+      '<p>RadAcad isn’t a school. It’s what your student does instead. Students are homeschooled or enrolled in an online school, and RadAcad is where their day happens: the space, the schedule, the coaching, and the community.</p>' +
+      '<p>Every plan starts with a membership. Add one-on-one subjects if your student wants them, and we’ll fine-tune the rest together on a call.</p>' +
+      '</div></details>' +
       '</div>' +
       '<div class="wizard">' +
-        '<div class="progress">' +
-          '<p class="step-count" aria-live="polite"></p>' +
-          '<ol class="bar" aria-hidden="true">' + STEPS.map(function () { return '<li></li>'; }).join('') + '</ol>' +
-        '</div>' +
-        '<div class="panel"></div>' +
-        '<div class="foot">' +
-          '<div class="foot-left"></div>' +
-          '<div class="foot-right">' +
-            '<button type="button" class="btn-back">Back</button>' +
-            '<button type="button" class="btn next">Next</button>' +
-          '</div>' +
-        '</div>' +
+      '<div class="progress">' +
+      '<p class="step-count" aria-live="polite"></p>' +
+      '<ol class="bar" aria-hidden="true">' + STEPS.map(function () { return '<li></li>'; }).join('') + '</ol>' +
+      '</div>' +
+      '<div class="panel"></div>' +
+      '<div class="foot">' +
+      '<div class="foot-left"></div>' +
+      '<div class="foot-right">' +
+      '<button type="button" class="btn-back">Back</button>' +
+      '<button type="button" class="btn next">Next</button>' +
+      '</div>' +
+      '</div>' +
       '</div>';
 
     var $ = function (s) { return app.querySelector(s); };
@@ -220,15 +220,15 @@
       return '<label class="opt' + (opts.featured ? ' featured' : '') + (on ? ' is-selected' : '') + '">' +
         '<input type="radio" name="foundation" value="' + f.id + '"' + (on ? ' checked' : '') + '>' +
         '<span class="opt-body">' +
-          '<span class="opt-top"><span class="opt-name">' + esc(f.name) + '</span>' +
-            (opts.featured ? '<span class="badge suggested">Suggested for you</span>' : '') +
-            (f.flag && !opts.featured ? '<span class="badge flag">' + esc(f.flag) + '</span>' : '') +
-          '</span>' +
-          '<span class="opt-desc">' + esc(f.desc) + '</span>' +
-          (opts.featured || on ? '<ul class="opt-inc">' + f.includes.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join('') + '</ul>' : '') +
+        '<span class="opt-top"><span class="opt-name">' + esc(f.name) + '</span>' +
+        (opts.featured ? '<span class="badge suggested">Suggested for you</span>' : '') +
+        (f.flag && !opts.featured ? '<span class="badge flag">' + esc(f.flag) + '</span>' : '') +
+        '</span>' +
+        '<span class="opt-desc">' + esc(f.desc) + '</span>' +
+        (opts.featured || on ? '<ul class="opt-inc">' + f.includes.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join('') + '</ul>' : '') +
         '</span>' +
         '<span class="opt-price">' + money(f.price) + '<small>/mo</small></span>' +
-      '</label>';
+        '</label>';
     }
 
     function renderPlan() {
@@ -244,20 +244,20 @@
           '<h3 class="step-title" tabindex="-1">Here’s where we’d start</h3>' +
           '<p class="sub">' + (why.length ? 'Suggested because you chose ' + esc(joinList(why)) + '. ' : '') + 'You can pick a different membership anytime.</p>' +
           '<div class="opts" role="radiogroup" aria-label="Memberships">' +
-            optCard(getF(sid), { featured: true }) +
-            (ns ? '<div class="notes">' + ns + '</div>' : '') +
-            '<p class="group-h">Other options</p>' +
-            '<div class="opt-list">' + others.map(function (f) { return optCard(f, {}); }).join('') + '</div>' +
-            partnerBlock(online) +
+          optCard(getF(sid), { featured: true }) +
+          (ns ? '<div class="notes">' + ns + '</div>' : '') +
+          '<p class="group-h">Other options</p>' +
+          '<div class="opt-list">' + others.map(function (f) { return optCard(f, {}); }).join('') + '</div>' +
+          partnerBlock(online) +
           '</div>';
       } else {
         html =
           '<h3 class="step-title" tabindex="-1">Choose a membership</h3>' +
           '<p class="sub">Every plan starts with one: a place to learn, with structure and good people around.</p>' +
           '<div class="opts" role="radiogroup" aria-label="Memberships">' +
-            (ns ? '<div class="notes">' + ns + '</div>' : '') +
-            '<div class="opt-list">' + core.map(function (f) { return optCard(f, {}); }).join('') + '</div>' +
-            partnerBlock(online) +
+          (ns ? '<div class="notes">' + ns + '</div>' : '') +
+          '<div class="opt-list">' + core.map(function (f) { return optCard(f, {}); }).join('') + '</div>' +
+          partnerBlock(online) +
           '</div>';
       }
       return html;
@@ -268,7 +268,7 @@
         '<summary>Enrolled with AEON, ICL Academy, or Laurel Springs?</summary>' +
         '<p class="sub small">Partnership packages bundle that program’s tuition with a Full RadAcad Membership.</p>' +
         '<div class="opt-list">' + partners.map(function (f) { return optCard(f, {}); }).join('') + '</div>' +
-      '</details>';
+        '</details>';
     }
     function joinList(arr) {
       if (arr.length < 2) return arr.join('');
@@ -284,9 +284,9 @@
       var member = isMember();
       return '<h3 class="step-title" tabindex="-1">Add one-on-one subjects</h3>' +
         '<p class="sub">' + esc(SC.detail) + ' ' +
-          (member ? money(SC.memberPrice) + ' a month each with your Full membership (normally ' + money(SC.price) + ').'
-                  : money(SC.price) + ' a month each, or ' + money(SC.memberPrice) + ' with a Full membership.') +
-          ' Optional, so skip this if your student doesn’t need one.</p>' +
+        (member ? money(SC.memberPrice) + ' a month each with your Full membership (normally ' + money(SC.price) + ').'
+          : money(SC.price) + ' a month each, or ' + money(SC.memberPrice) + ' with a Full membership.') +
+        ' Optional, so skip this if your student doesn’t need one.</p>' +
         '<div class="class-list">' + state.classes.map(classRow).join('') + '</div>' +
         '<button type="button" class="btn-ghost add-class">' + (state.classes.length ? 'Add another subject' : 'Add a subject') + '</button>';
     }
@@ -295,11 +295,11 @@
       return '<div class="class-row" data-uid="' + c.uid + '">' +
         '<label class="sr" for="' + id + '">Subject ' + (i + 1) + '</label>' +
         '<select id="' + id + '"><option value="">Choose a subject</option>' +
-          data.subjects.map(function (s) { return '<option' + (s === c.subject ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') +
+        data.subjects.map(function (s) { return '<option' + (s === c.subject ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') +
         '</select>' +
         '<span class="row-price">' + money(classPrice()) + '<small>/mo</small></span>' +
         '<button type="button" class="remove" aria-label="Remove subject ' + (i + 1) + '">Remove</button>' +
-      '</div>';
+        '</div>';
     }
 
     function renderSend() {
@@ -318,24 +318,24 @@
       return '<h3 class="step-title" tabindex="-1">Send us your plan</h3>' +
         '<p class="sub">We’ll email you a copy and follow up ' + esc(S.followUp) + '. You can book your intro call right after.</p>' +
         '<div class="send-grid">' +
-          '<form novalidate>' +
-            '<div class="grid">' +
-              field('parentFirst', 'Your first name', 'text', 'given-name', true) +
-              field('parentLast', 'Your last name', 'text', 'family-name', true) +
-              field('email', 'Email', 'email', 'email', true) +
-              field('phone', 'Mobile phone', 'tel', 'tel', true) +
-              field('studentFirst', 'Student’s first name', 'text', 'off', true) +
-              select('grade', 'Student’s grade', S.grades.map(function (g) { return [g, 'Grade ' + g]; }), true) +
-              select('start', 'When would you like to start?', START_OPTIONS.map(function (o) { return [o, o]; }), false) +
-              select('heard', 'How did you hear about us?', HEARD_OPTIONS.map(function (o) { return [o, o]; }), false) +
-              '<div class="f wide"><label for="rma-notes">Anything we should know? <span class="opt-tag">(optional)</span></label>' +
-                '<textarea id="rma-notes" name="notes" rows="3" placeholder="Learning needs, travel plans, what’s working and what isn’t">' + esc(F.notes || '') + '</textarea></div>' +
-            '</div>' +
-            '<div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label></div>' +
-            '<p class="form-error" role="alert"></p>' +
-            '<button type="submit" class="sr-submit" tabindex="-1" aria-hidden="true"></button>' +
-          '</form>' +
-          recap() +
+        '<form novalidate>' +
+        '<div class="grid">' +
+        field('parentFirst', 'Your first name', 'text', 'given-name', true) +
+        field('parentLast', 'Your last name', 'text', 'family-name', true) +
+        field('email', 'Email', 'email', 'email', true) +
+        field('phone', 'Mobile phone', 'tel', 'tel', true) +
+        field('studentFirst', 'Student’s first name', 'text', 'off', true) +
+        select('grade', 'Student’s grade', S.grades.map(function (g) { return [g, 'Grade ' + g]; }), true) +
+        select('start', 'When would you like to start?', START_OPTIONS.map(function (o) { return [o, o]; }), false) +
+        select('heard', 'How did you hear about us?', HEARD_OPTIONS.map(function (o) { return [o, o]; }), false) +
+        '<div class="f wide"><label for="rma-notes">Anything we should know? <span class="opt-tag">(optional)</span></label>' +
+        '<textarea id="rma-notes" name="notes" rows="3" placeholder="Learning needs, travel plans, what’s working and what isn’t">' + esc(F.notes || '') + '</textarea></div>' +
+        '</div>' +
+        '<div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label></div>' +
+        '<p class="form-error" role="alert"></p>' +
+        '<button type="submit" class="sr-submit" tabindex="-1" aria-hidden="true"></button>' +
+        '</form>' +
+        recap() +
         '</div>';
     }
     function recap() {
@@ -344,15 +344,15 @@
       return '<aside class="recap" aria-label="Your plan">' +
         '<p class="recap-h">Your plan</p>' +
         '<ul>' +
-          '<li><span>' + esc(f.name) + '</span><span>' + money(f.price) + '</span></li>' +
-          state.classes.map(function (c) {
-            return '<li><span>' + (c.subject ? esc(c.subject) : 'Subject to choose together') + '<small>One-on-one, 3 hrs a week</small></span><span>' + money(p) + '</span></li>';
-          }).join('') +
+        '<li><span>' + esc(f.name) + '</span><span>' + money(f.price) + '</span></li>' +
+        state.classes.map(function (c) {
+          return '<li><span>' + (c.subject ? esc(c.subject) : 'Subject to choose together') + '<small>One-on-one, 3 hrs a week</small></span><span>' + money(p) + '</span></li>';
+        }).join('') +
         '</ul>' +
         '<p class="recap-total"><span>Estimated monthly total</span><strong>' + money(total()) + '</strong></p>' +
         (saved ? '<p class="recap-save">Includes ' + money(saved) + ' a month in Full-membership savings.</p>' : '') +
         '<button type="button" class="link edit-plan">Change the plan</button>' +
-      '</aside>';
+        '</aside>';
     }
 
     function renderSent() {
@@ -361,7 +361,7 @@
         '<p>Check your inbox for a copy. The next step is a ' + esc(S.callLength) + ' intro call, so we can get to know your family and fine-tune the plan together.</p>' +
         '<a class="btn" target="_blank" rel="noopener" href="' + esc(S.bookingUrl) + '">Book your intro call</a>' +
         '<p class="fine">Not ready to book? We’ll reach out ' + esc(S.followUp) + '.</p>' +
-      '</div>';
+        '</div>';
     }
 
     /* ----- main render ----- */
@@ -577,8 +577,8 @@
       btn.disabled = true; btn.textContent = 'Sending…';
       var send = S.endpoint
         ? fetch(S.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-            .then(function (r) { return r.json(); })
-            .then(function (res) { if (!res || !res.ok) throw new Error((res && res.error) || 'Send failed'); })
+          .then(function (r) { return r.json(); })
+          .then(function (res) { if (!res || !res.ok) throw new Error((res && res.error) || 'Send failed'); })
         : new Promise(function (resolve) { console.info('[plan builder] Preview mode: no endpoint set in plans.json, so nothing was sent.', payload); setTimeout(resolve, 600); });
 
       send.then(function () {
