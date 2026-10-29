@@ -5,120 +5,766 @@
     "callLength": "45-minute",
     "followUp": "within 1–2 business days",
     "contactEmail": "garrett.austen@tetontutors.org",
-    "grades": ["5", "6", "7", "8", "9", "10", "11", "12"],
-    "payments": 9,
-    "esaAnnual": 7000,
-    "foundationUrl": "https://radacadfoundation.org/apply",
-    "starts": [
-      { "id": "jan2027", "label": "January 2027", "detail": "Spring semester, January to June 15" },
-      { "id": "fall2027", "label": "Fall 2027", "detail": "Full school year, September to June 15" }
-    ]
-  },
-
-  "membership": {
-    "twoDayPrice": 350,
-    "extraDayPrice": 300,
-    "fullWeekPrice": 1200,
-    "dropInPrice": 230,
-    "includes": [
-      "The learning space on your membership days",
-      "Daily goals with an academic coach, plus weekly and monthly goals",
-      "A note home every day with goals, grades, and missing work",
-      "Field trips and ski days"
+    "grades": [
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12"
     ],
-    "guarantee": "If RadAcad isn’t the right fit, we’ll refund your first month of membership. Just let us know."
+    "esaAnnual": 7000,
+    "foundationUrl": "https://radacadfoundation.org/apply"
   },
-
-  "addOns": {
-    "close": {
-      "name": "Close support",
-      "price": 250,
-      "minGrade": 9,
-      "desc": "Check-ins every hour on every membership day, for high schoolers who need more structure."
+  "schools": [
+    {
+      "id": "own",
+      "name": "We’ll build a hybrid, or we have our own school",
+      "priceLabel": "Membership plus what you add",
+      "desc": "Homeschool, another online school, or a mix: RadAcad small group classes, a few ICL courses à la carte, and 1:1 where it’s needed. You choose the pieces below."
     },
+    {
+      "id": "icl-live",
+      "name": "ICL Academy, live classes, through RadAcad",
+      "monthly": 2875,
+      "membershipPart": 1200,
+      "deposit": 450,
+      "chip": "ICL classes",
+      "desc": "Full online school with live teachers. Full-week membership and daily coaching included. One bill."
+    },
+    {
+      "id": "icl-async",
+      "name": "ICL Academy, self-paced, through RadAcad",
+      "monthly": 2425,
+      "membershipPart": 1200,
+      "deposit": 300,
+      "chip": "ICL classes",
+      "desc": "Same school, asynchronous courses. Full-week membership included."
+    },
+    {
+      "id": "aeon",
+      "hidden": true,
+      "name": "Aeon School, through RadAcad",
+      "monthly": 1200,
+      "membershipPart": 1200,
+      "semesterFee": 10500,
+      "priceLabel": "$31,800/yr",
+      "chip": "Aeon classes",
+      "desc": "Seminar-style school aimed at selective colleges. Aeon tuition is paid by semester; the full-week membership is monthly."
+    }
+  ],
+  "membership": {
+    "prices": {
+      "2": 350,
+      "3": 650,
+      "4": 950,
+      "5": 1200
+    },
+    "dayNote": "Each day includes morning goal-setting with a coach, a check-in during the day, and a note home. Middle schoolers get check-ins throughout the day.",
+    "packageRule": "Online school through RadAcad is full week. A student whose whole school is on a laptop needs someone there every day."
+  },
+  "addOns": {
     "checkin": {
       "name": "Weekly check-in session",
       "price": 325,
-      "desc": "One 30-minute session a week with a coach to plan the week and review what’s due."
+      "desc": "Thirty minutes a week with a coach to plan the week and look at what’s due."
+    },
+    "close": {
+      "name": "Close support",
+      "price": 250,
+      "desc": "Check-ins every hour on every membership day. For high schoolers who need more structure."
     },
     "coaching": {
-      "name": "One-on-one coaching or tutoring",
+      "name": "1:1 coaching",
       "price": 650,
-      "max": 5,
-      "desc": "One session a week with a coach or tutor, $650 a month. Add more sessions for more support."
-    },
-    "subject": {
-      "name": "Single subject class",
-      "price": 1950,
       "max": 3,
-      "desc": "A full class in one subject, built around your student. Meets three hours a week, all year."
+      "desc": "One hour a week with a coach or tutor, in any subject. $650/mo per weekly hour."
+    },
+    "single": {
+      "name": "Individual single-subject class",
+      "price": 1950,
+      "max": 4,
+      "desc": "A full course taught 1:1, three hours a week. $1,950/mo each."
     }
   },
-
   "smallGroup": {
-    "name": "Small group class",
-    "minGrade": 6,
-    "maxGrade": 8,
     "fallFee": 1250,
     "springFee": 1800,
-    "desc": "Classes with other students, PE included. Two 90-minute sessions a week, billed by the semester.",
-    "blocks": [
-      { "id": "mw", "label": "Monday/Wednesday", "days": ["Mon", "Wed"], "classes": [] },
-      { "id": "tt", "label": "Tuesday/Thursday", "days": ["Tue", "Thu"], "classes": [] }
+    "desc": "Grades 6–8. Two 90-minute sessions a week, taught in person. $1,250 for fall, $1,800 for spring, per class. Pick as many as fit the week; classes on the same days share a membership day.",
+    "scheduleNote": "The fall schedule is shown; spring classes are posted in December.",
+    "classes": [
+      {
+        "id": "english",
+        "name": "English",
+        "short": "English",
+        "who": "Garrett",
+        "when": "Mon & Wed, 8:30–10:00",
+        "days": [
+          "Mon",
+          "Wed"
+        ]
+      },
+      {
+        "id": "science",
+        "name": "Science: Exploring a Multidimensional World",
+        "short": "Science",
+        "who": "Kirby",
+        "when": "Mon & Wed, 10:15–11:45",
+        "days": [
+          "Mon",
+          "Wed"
+        ]
+      },
+      {
+        "id": "spanish",
+        "name": "Differentiated Spanish",
+        "short": "Spanish",
+        "who": "Val",
+        "when": "Mon & Wed, 12:30–2:00",
+        "days": [
+          "Mon",
+          "Wed"
+        ]
+      },
+      {
+        "id": "math",
+        "name": "Mastery Math",
+        "short": "Math",
+        "who": "Kirby",
+        "when": "Tue & Thu, 8:30–10:00",
+        "days": [
+          "Tue",
+          "Thu"
+        ]
+      },
+      {
+        "id": "pe",
+        "name": "PE at the Rec Center",
+        "short": "PE",
+        "who": "Garrett",
+        "when": "Tue & Thu, 12:30–2:00",
+        "days": [
+          "Tue",
+          "Thu"
+        ]
+      },
+      {
+        "id": "club",
+        "name": "Community Club",
+        "short": "Community Club",
+        "who": "Garrett & Oliver",
+        "when": "Mon 12:30–2:00 & Tue 2:00–3:30",
+        "days": [
+          "Mon",
+          "Tue"
+        ]
+      }
     ]
   },
-
-  "icl": {
-    "name": "ICL Academy",
-    "desc": "ICL Academy is a RadAcad partner school. Your student takes ICL courses here, with a coach keeping them on track.",
-    "packages": {
-      "live": { "name": "Full week + ICL live", "price": 2875, "desc": "Full-week membership plus full-time live ICL Academy enrollment.", "deposit": 450 },
-      "async": { "name": "Full week + ICL async", "price": 2425, "desc": "Full-week membership plus full-time self-paced ICL Academy enrollment.", "deposit": 300 }
-    },
-    "alaCarte": {
-      "live": { "name": "ICL live course", "price": 280 },
-      "async": { "name": "ICL self-paced course", "price": 225 },
-      "max": 3
-    },
-    "janNote": "January 2027 starts pay five payments, January through May, and stay at RadAcad through June 15 for capstone projects, portfolio websites, and field days.",
-    "janGuarantee": "January 2027 guarantee: withdraw by January 31 for a full refund, minus the non-refundable ICL deposit."
+  "iclAlaCarte": {
+    "live": 280,
+    "async": 225,
+    "max": 3,
+    "desc": "Up to three accredited online courses alongside your own school, done here with a coach. Live classes are $280 a month per course; self-paced is $225. Search the catalog and pick what you need.",
+    "departments": [
+      "All",
+      "Math",
+      "English",
+      "Science",
+      "Social Studies",
+      "World Languages",
+      "AP",
+      "Electives"
+    ]
   },
-
-  "aeon": {
-    "hidden": true,
-    "name": "Premium: full week + Aeon School",
-    "monthly": 1200,
-    "semesterFee": 10500,
-    "desc": "Aeon is a seminar-style partner school aimed at selective college admissions. Aeon tuition is paid by the semester, in advance."
-  },
-
-  "presets": [
-    { "id": "full", "name": "Full-week membership", "built": "Full week", "config": { "days": 5 } },
-    { "id": "two", "name": "Two-day membership", "built": "Up to two days a week", "config": { "days": 2 } },
-    { "id": "online-checkin", "name": "Online school check-in", "built": "Two-day membership + weekly check-in session", "config": { "days": 2, "checkin": true } },
-    { "id": "online-coaching", "name": "Online school coaching", "built": "Two-day membership + one coaching session a week", "config": { "days": 2, "coaching": 1 } },
-    { "id": "one-class", "name": "One small group class", "built": "Two-day membership + one Mon/Wed class", "config": { "days": 2, "groups": ["mw"] }, "grades": [6, 8] },
-    { "id": "full-coaching", "name": "Full week + coaching", "built": "Full week + two coaching sessions a week", "config": { "days": 5, "coaching": 2 } },
-    { "id": "icl-live", "name": "Full week + ICL live", "built": "Online school package, live", "config": { "icl": { "mode": "package", "type": "live" } } },
-    { "id": "icl-async", "name": "Full week + ICL async", "built": "Online school package, self-paced", "config": { "icl": { "mode": "package", "type": "async" } } },
-    { "id": "ms-mix", "name": "Middle school mix", "built": "Full week + 3 ICL live courses + 2 small group classes", "config": { "days": 5, "icl": { "mode": "alacarte", "type": "live", "courses": 3 }, "groups": ["mw", "tt"] }, "grades": [6, 8] },
-    { "id": "full-two-subjects", "name": "Full week + two single subject classes", "built": "Full week + 2 single subject classes", "config": { "days": 5, "subjects": 2 } }
+  "aid": [
+    {
+      "pct": 10,
+      "label": "Household income is 80–120% of the Teton County median (10% off membership)"
+    },
+    {
+      "pct": 20,
+      "label": "Household income is below 80% of the county median (20% off membership)"
+    }
   ],
-
-  "subjects": [
-    "Math (Algebra I & II)",
-    "Calculus / AP Calculus",
-    "Chemistry",
-    "Science",
-    "English & essay writing",
-    "Reading support (Orton-Gillingham, Wilson)",
-    "History & AP Gov",
-    "Spanish",
-    "French",
-    "Latin",
-    "ESL",
-    "Coding",
-    "Test prep (SAT, ACT, SSAT, ISEE)",
-    "Something else"
+  "esaLabel": "We have Wyoming ESA funds ($7,000 a year for any student not in public school)",
+  "esaJanNote": "ESA applications open in the summer and funds start in September, so a January start uses ESA next fall, not this spring.",
+  "starts": [
+    {
+      "id": "fall",
+      "label": "Fall",
+      "payments": 9,
+      "desc": "Nine monthly payments, September through May, cover the year through June 15."
+    },
+    {
+      "id": "jan",
+      "label": "January",
+      "payments": 5,
+      "desc": "Five monthly payments, January through May, cover the spring through June 15."
+    }
+  ],
+  "iclCourses": [
+    {
+      "n": "Algebra 1",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Algebra 1 HONORS",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Algebra 2",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Algebra 2 HONORS",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "AP Art History",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Biology",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Business",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Calculus AB",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Computer Science",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Environmental Science",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP French",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Government",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Language and Composition",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Literature and Composition",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Macroeconomics",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Microeconomics",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Spanish",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP Statistics",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP US History",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "AP World History",
+      "d": "AP",
+      "ms": false
+    },
+    {
+      "n": "Art and Culture",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Art Fundamentals",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Biology",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Biology HONORS",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Business of Performance",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Chemistry",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Chemistry HONORS",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Coding Principles",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Digital Creator Playbook",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Earth Science",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Earth Science HONORS",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Economics",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Economics HONORS",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "English 5",
+      "d": "English",
+      "ms": true
+    },
+    {
+      "n": "English 6",
+      "d": "English",
+      "ms": true
+    },
+    {
+      "n": "English 7",
+      "d": "English",
+      "ms": true
+    },
+    {
+      "n": "English 8",
+      "d": "English",
+      "ms": true
+    },
+    {
+      "n": "English 8 HONORS",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 9",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 9 HONORS",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 10",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 10 HONORS",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 11",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 11 HONORS",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 12",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "English 12 HONORS",
+      "d": "English",
+      "ms": false
+    },
+    {
+      "n": "Entrepreneurship",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Ethnic Studies",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Film Study",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Financial Literacy",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Foundations of a Global Society",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "French 1",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "French 2",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "French 2 HONORS",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "French 3",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "French 3 HONORS",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "French 4",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "French 4 HONORS",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Geometry",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Geometry HONORS",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Government",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Government HONORS",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Graphic Design",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Health and Fitness",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "History of Sports",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Human Anatomy",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Human Anatomy HONORS",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Introduction to 3D Printing",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Introduction to Coding",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Introduction to Health and Nutrition",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Introduction to Spanish",
+      "d": "World Languages",
+      "ms": true
+    },
+    {
+      "n": "Leadership",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Math 5",
+      "d": "Math",
+      "ms": true
+    },
+    {
+      "n": "Math 6",
+      "d": "Math",
+      "ms": true
+    },
+    {
+      "n": "Math 7",
+      "d": "Math",
+      "ms": true
+    },
+    {
+      "n": "MS US History",
+      "d": "Social Studies",
+      "ms": true
+    },
+    {
+      "n": "MS World History",
+      "d": "Social Studies",
+      "ms": true
+    },
+    {
+      "n": "NIL and Brand Partnerships",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Passion Exploration",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Philosophy",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Physics",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Physics HONORS",
+      "d": "Science",
+      "ms": false
+    },
+    {
+      "n": "Pre-Algebra",
+      "d": "Math",
+      "ms": true
+    },
+    {
+      "n": "Pre-Algebra HONORS",
+      "d": "Math",
+      "ms": true
+    },
+    {
+      "n": "Pre-Calculus",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Pre-Calculus HONORS",
+      "d": "Math",
+      "ms": false
+    },
+    {
+      "n": "Psychology",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Science 5",
+      "d": "Science",
+      "ms": true
+    },
+    {
+      "n": "Science 6",
+      "d": "Science",
+      "ms": true
+    },
+    {
+      "n": "Science 7",
+      "d": "Science",
+      "ms": true
+    },
+    {
+      "n": "Science 8",
+      "d": "Science",
+      "ms": true
+    },
+    {
+      "n": "Science of Sports",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Social Studies 5",
+      "d": "Social Studies",
+      "ms": true
+    },
+    {
+      "n": "Social Studies 6",
+      "d": "Social Studies",
+      "ms": true
+    },
+    {
+      "n": "Spanish 1",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Spanish 2",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Spanish 2 HONORS",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Spanish 3",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Spanish 3 HONORS",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Spanish 4",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Spanish 4 HONORS",
+      "d": "World Languages",
+      "ms": false
+    },
+    {
+      "n": "Sports Management",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Sports Medicine",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "Sports Psychology",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Theatre 1",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "US History",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "US History HONORS",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "Web Design",
+      "d": "Electives",
+      "ms": false
+    },
+    {
+      "n": "World Geography",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "World Geography HONORS",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "World History",
+      "d": "Social Studies",
+      "ms": false
+    },
+    {
+      "n": "World History HONORS",
+      "d": "Social Studies",
+      "ms": false
+    }
   ]
 }
