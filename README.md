@@ -47,7 +47,7 @@ From Garrett's pricing doc and mockup:
 - Small group classes: $1,250 fall or $1,800 spring per class, shown per semester. The year total for a fall start counts fall + spring.
 - **Wyoming ESA is built into the prices** (Garrett, Nov 2): the ESA box is checked by default, for fall and January starts. The big number is per month with ESA = monthly − $7,000 ÷ payments (9 fall, 5 January), never below $0. Any ESA left over goes to semester fees. Unchecking ESA shows full price; January + no ESA shows the "missed this year's window, we'll help you apply" note.
 - Year total = monthly × payments + semester fees.
-- Fine print at the top of the summary: final plan and pricing are confirmed when the family meets with Garrett and signs a contract.
+- Fine print at the top of the summary: "Final plan and pricing to be confirmed when your family meets with Radical Minds Academy." (`settings.finePrint`)
 - **Example plans** sit at the top as a starting point (`presets` in `plans.json`, each one a set of builder choices). Prices on the cards include ESA and any discount the family has checked.
 - **Aeon** is live: $1,200/mo full-week membership + $10,500 per semester Aeon tuition ($31,800/yr; $16,500 for a January start). Add `"hidden": true` to it in `schools` to hide it again.
 - Kept off the site: ICL payouts, per-hour math, margins, referral arrangements.
