@@ -74,7 +74,7 @@
 
     var st = {
       school: 'own', days: 2, checkin: false, close: false, coach: 0, single: 0,
-      classes: [], icl: [], start: 'fall', esa: false, aid: 0,
+      classes: [], icl: [], start: 'fall', esa: true, aid: 0, preset: null,
       dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
     };
 
@@ -126,9 +126,14 @@
         yearFees += sc.semesterFee * (fall ? 2 : 1);
       }
       var yearly = monthly * start.payments + yearFees;
-      var esaOn = st.esa && fall;
-      var after = esaOn ? Math.max(0, yearly - S.esaAnnual) : yearly;
-      return { lines: lines, sem: sem, semPer: semPer, monthly: monthly, yearly: yearly, esaOn: esaOn, after: after, payments: start.payments, days: onDays(), memBase: memBase };
+      var esaOn = st.esa;
+      var esaTotal = esaOn ? Math.min(S.esaAnnual, yearly) : 0;
+      var monthlyAfter = esaOn ? Math.max(0, monthly - S.esaAnnual / start.payments) : monthly;
+      var leftover = esaTotal - (monthly - monthlyAfter) * start.payments;
+      var feesAfter = Math.max(0, yearFees - leftover);
+      var after = Math.max(0, yearly - esaTotal);
+      return { lines: lines, sem: sem, semPer: semPer, monthly: monthly, monthlyAfter: monthlyAfter, esaMonthly: monthly - monthlyAfter,
+        yearFees: yearFees, feesAfter: feesAfter, yearly: yearly, esaOn: esaOn, esaTotal: esaTotal, after: after, payments: start.payments, days: onDays(), memBase: memBase };
     }
 
     /* ---------- skeleton ---------- */
@@ -136,10 +141,13 @@
     app.innerHTML =
       '<header class="intro">' +
         '<p class="tagline">Build your RadAcad week</p>' +
-        '<p class="lede">Every student starts with a membership. Pick the days, add what your student needs, and watch the week fill in. Nothing here is final; it’s a starting point for a conversation.</p>' +
+        '<p class="lede">Every student starts with a membership. Start from an example plan or build your own, and watch the week and the price fill in.</p>' +
       '</header>' +
       '<div class="layout">' +
         '<div class="builder">' +
+          '<section class="step" aria-labelledby="h-presets"><h3 id="h-presets">Start from an example plan</h3>' +
+            '<p class="hint">Pick the one closest to your family, then change anything below. Prices include Wyoming ESA.</p>' +
+            '<div class="presets" id="sec-presets"></div></section>' +
           '<section class="step" aria-labelledby="h-school"><h3 id="h-school"><span class="num">1</span>Where does school happen?</h3>' +
             '<p class="hint">RadAcad is the place your student does school, with a coach, goals every morning, and a note home every afternoon. The school itself can be one you already have or one we provide.</p>' +
             '<div class="choices" id="sec-school"></div>' +
@@ -175,6 +183,29 @@
     var $ = function (s) { return app.querySelector(s); };
 
     /* ---------- left renderers ---------- */
+    var BLANK = { school: 'own', days: 2, checkin: false, close: false, coach: 0, single: 0, classes: [], icl: [] };
+    function applyPreset(id) {
+      var p = data.presets.filter(function (x) { return x.id === id; })[0];
+      Object.assign(st, JSON.parse(JSON.stringify(BLANK)), JSON.parse(JSON.stringify(p.set)));
+      st.preset = id;
+      track('plan_builder_preset', { preset: id });
+    }
+    function priceFor(set) {
+      var keep = JSON.parse(JSON.stringify(st));
+      Object.assign(st, JSON.parse(JSON.stringify(BLANK)), JSON.parse(JSON.stringify(set)));
+      normalize(); var r = compute();
+      Object.keys(keep).forEach(function (k) { st[k] = keep[k]; });
+      return r;
+    }
+    function renderPresets() {
+      $('#sec-presets').innerHTML = data.presets.filter(function (p) { return !p.set.school || !school(p.set.school).hidden; }).map(function (p) {
+        var r = priceFor(p.set), on = st.preset === p.id;
+        var fees = r.yearFees ? (r.esaOn && r.feesAfter < r.yearFees ? ' + ' + money(r.feesAfter) + ' fees' : ' + fees') : '';
+        return '<button type="button" class="preset" data-preset="' + p.id + '" aria-pressed="' + on + '">' +
+          '<strong>' + esc(p.name) + '</strong><small>' + esc(p.built) + '</small>' +
+          '<span class="pp">' + (r.esaOn && r.monthlyAfter === 0 && !r.feesAfter ? 'Fully covered' : money(r.monthlyAfter) + '/mo' + fees) + '</span></button>';
+      }).join('');
+    }
     function renderSchool() {
       $('#sec-school').innerHTML = schools.map(function (s) {
         var on = st.school === s.id;
@@ -248,7 +279,7 @@
             return '<label class="toggle"><input type="checkbox" id="rma-aid' + a.pct + '" data-aid="' + a.pct + '"' + (st.aid === a.pct ? ' checked' : '') + '><span>' + esc(a.label) + '</span></label>';
           }).join('') +
         '</div>' +
-        (st.esa && st.start === 'jan' ? '<p class="note">' + esc(data.esaJanNote) + '</p>' : '') +
+        (st.start === 'jan' ? '<p class="note">' + esc(st.esa ? data.esaJanYes : data.esaJanNo) + '</p>' : '') +
         (st.aid ? '<p class="note">Need-based discounts come through the RadAcad Foundation. It’s a quick verification, not a committee review: <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">apply here</a>.</p>' : '');
     }
     function renderForm() {
@@ -316,11 +347,16 @@
       }).join('') + r.sem.map(function (l) { return '<li class="semline"><span>' + esc(l.label) + '</span><span>' + esc(l.text) + '</span></li>'; }).join('');
 
       var fall = st.start === 'fall';
-      $('#sum-lbl').textContent = 'Per month, ' + (fall ? 'nine payments' : 'five payments') + (r.semPer ? ', plus ' + money(r.semPer) + ' per semester' : '');
-      $('#sum-big').textContent = money(r.monthly);
-      $('.mb-num').textContent = money(r.monthly);
-      $('#sum-esa').textContent = money(r.yearly) + (fall ? ' for the school year' : ' for the spring') +
-        (r.esaOn ? (r.after === 0 ? '. Fully covered by Wyoming ESA.' : '. After ESA: ' + money(r.after) + ', about ' + money(r.after / r.payments) + '/mo.') : '.');
+      var period = fall ? 'school year' : 'spring';
+      $('#sum-lbl').textContent = 'Per month' + (r.esaOn ? ' with Wyoming ESA' : '') + ', ' + (fall ? 'nine payments' : 'five payments');
+      $('#sum-big').textContent = money(r.monthlyAfter);
+      $('.mb-num').textContent = money(r.monthlyAfter);
+      var esaTxt = r.esaOn
+        ? (r.after === 0 ? 'Fully covered by Wyoming ESA. ' : '') + money(r.monthly) + '/mo before ESA. ESA covers ' + money(r.esaTotal) + ' of your ' + money(r.yearly) + ' ' + period + '.'
+        : money(r.yearly) + ' for the ' + period + '.';
+      var feeName = st.school === 'aeon' ? (st.classes.length ? 'Class fees and Aeon tuition' : 'Aeon tuition') : 'Class fees';
+      if (r.yearFees) esaTxt += ' ' + feeName + ': ' + (r.esaOn && r.feesAfter === 0 ? 'covered by ESA too.' : r.esaOn && r.feesAfter < r.yearFees ? money(r.feesAfter) + ' for the ' + period + ' after ESA.' : money(r.semPer) + ' per semester.');
+      $('#sum-esa').textContent = esaTxt;
 
       var fine = ['Membership is month to month with 30 days’ notice.'];
       if (pkg) fine.push(st.school === 'aeon' ? 'Aeon tuition is billed by semester and paid before the semester starts.'
@@ -328,7 +364,7 @@
       else fine.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn’t a fit.');
       if (st.classes.length) fine.push('Classes on the same days share a membership day, so two Monday/Wednesday classes still fit a two-day membership.');
       fine.push('Prepay by the semester or the year for 5% off.');
-      $('#sum-fine').innerHTML = fine.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') +
+      $('#sum-fine').innerHTML = '<li class="confirm">' + esc(S.finePrint) + '</li>' + fine.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') +
         '<li>Scholarships from the RadAcad Foundation stack with ESA. <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">See scholarships</a></li>';
       $('#sum-cta').hidden = st.sent;
     }
@@ -338,14 +374,14 @@
       if (!el || !el.tagName) return '';
       if (el.id) return '#' + el.id;
       var d = el.dataset || {};
-      var keys = ['school', 'days', 'dec', 'inc', 'dept', 'start', 'addIcl', 'fmt'];
+      var keys = ['preset', 'school', 'days', 'dec', 'inc', 'dept', 'start', 'addIcl', 'fmt'];
       for (var i = 0; i < keys.length; i++) if (d[keys[i]] !== undefined) return keys[i] + ':' + d[keys[i]] + (d.live || '');
       return '';
     }
     function render() {
       var key = focusKey(root.activeElement);
       normalize();
-      renderSchool(); renderDays(); renderAddons(); renderIcl(); renderStart(); renderSummary();
+      renderPresets(); renderSchool(); renderDays(); renderAddons(); renderIcl(); renderStart(); renderSummary();
       app.classList.toggle('sheet-open', st.sheet);
       app.classList.toggle('is-sent', st.sent);
       if (key) {
@@ -364,6 +400,8 @@
     builder.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b || b.disabled || b.type === 'submit') return;
       var d = b.dataset;
+      if (d.preset) { applyPreset(d.preset); started(); render(); return; }
+      st.preset = null;
       if (d.school) { st.school = d.school; track('plan_builder_school', { school: d.school }); }
       else if (d.days) st.days = +d.days;
       else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.max : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
@@ -378,6 +416,7 @@
     });
     builder.addEventListener('change', function (e) {
       var t = e.target, d = t.dataset;
+      if (!t.hasAttribute('data-esa') && !d.aid) st.preset = null;
       if (d.toggle) st[d.toggle] = t.checked;
       else if (d.cls) st.classes = t.checked ? st.classes.concat(d.cls) : st.classes.filter(function (x) { return x !== d.cls; });
       else if (t.hasAttribute('data-esa')) st.esa = t.checked;
@@ -430,12 +469,12 @@
           suggested: ''
         },
         plan: {
-          name: isPkg() ? sc.name.replace(', through RadAcad', '') : membershipName(st.days) + ' plan',
+          name: st.preset ? data.presets.filter(function (p) { return p.id === st.preset; })[0].name : isPkg() ? sc.name.replace(', through RadAcad', '') : membershipName(st.days) + ' plan',
           days: r.days,
           lines: r.lines.map(function (l) { return { label: l.label, amount: Math.round(l.amount) }; }),
           monthly: Math.round(r.monthly),
           classFees: r.sem.map(function (s) { return s.label + ': ' + s.text; }).join('; '),
-          esa: money(r.yearly) + (fall ? ' for the school year' : ' for the spring') + (r.esaOn ? '; after ESA ' + money(r.after) : '')
+          esa: r.esaOn ? money(Math.round(r.monthlyAfter)) + '/mo with Wyoming ESA (' + money(r.after) + ' for the ' + (fall ? 'school year' : 'spring') + ')' : 'No ESA: ' + money(r.yearly) + ' for the ' + (fall ? 'school year' : 'spring')
         }
       };
       var btn = form.querySelector('.submit');

@@ -16,7 +16,8 @@
       "12"
     ],
     "esaAnnual": 7000,
-    "foundationUrl": "https://radacadfoundation.org/apply"
+    "foundationUrl": "https://radacadfoundation.org/apply",
+    "finePrint": "Your final plan and pricing are confirmed when your family meets with Garrett and signs your contract."
   },
   "schools": [
     {
@@ -45,12 +46,11 @@
     },
     {
       "id": "aeon",
-      "hidden": true,
       "name": "Aeon School, through RadAcad",
       "monthly": 1200,
       "membershipPart": 1200,
       "semesterFee": 10500,
-      "priceLabel": "$31,800/yr",
+      "priceLabel": "$1,200/mo + $10,500 per semester",
       "chip": "Aeon classes",
       "desc": "Seminar-style school aimed at selective colleges. Aeon tuition is paid by semester; the full-week membership is monthly."
     }
@@ -190,7 +190,6 @@
     }
   ],
   "esaLabel": "We have Wyoming ESA funds ($7,000 a year for any student not in public school)",
-  "esaJanNote": "ESA applications open in the summer and funds start in September, so a January start uses ESA next fall, not this spring.",
   "starts": [
     {
       "id": "fall",
@@ -765,6 +764,118 @@
       "n": "World History HONORS",
       "d": "Social Studies",
       "ms": false
+    }
+  ],
+  "esaJanYes": "Families who applied over the summer can use those funds for a January start.",
+  "esaJanNo": "Starting in January without ESA? This year’s application window has closed, but we’ll help you apply for next year.",
+  "presets": [
+    {
+      "id": "full",
+      "name": "Full-week membership",
+      "built": "Full week",
+      "set": {
+        "days": 5
+      }
+    },
+    {
+      "id": "two",
+      "name": "Two-day membership",
+      "built": "Up to two days a week",
+      "set": {}
+    },
+    {
+      "id": "online-checkin",
+      "name": "Online school check-in",
+      "built": "Two-day membership + weekly 30-minute check-in",
+      "set": {
+        "checkin": true
+      }
+    },
+    {
+      "id": "online-coaching",
+      "name": "Online school coaching",
+      "built": "Two-day membership + 1 hr coaching",
+      "set": {
+        "coach": 1
+      }
+    },
+    {
+      "id": "one-class",
+      "name": "One small group class",
+      "built": "Two-day membership + English (Mon & Wed)",
+      "set": {
+        "classes": [
+          "english"
+        ]
+      }
+    },
+    {
+      "id": "full-coaching",
+      "name": "Full week + coaching",
+      "built": "Full week + 2 hrs coaching",
+      "set": {
+        "days": 5,
+        "coach": 2
+      }
+    },
+    {
+      "id": "icl-live",
+      "name": "Full week + ICL live",
+      "built": "Online school package, live",
+      "set": {
+        "school": "icl-live"
+      }
+    },
+    {
+      "id": "icl-async",
+      "name": "Full week + ICL self-paced",
+      "built": "Online school package, self-paced",
+      "set": {
+        "school": "icl-async"
+      }
+    },
+    {
+      "id": "ms-mix",
+      "name": "Middle school mix",
+      "built": "Full week + 3 ICL live courses + 2 small group classes",
+      "set": {
+        "days": 5,
+        "icl": [
+          {
+            "n": "English 7",
+            "live": true
+          },
+          {
+            "n": "Math 7",
+            "live": true
+          },
+          {
+            "n": "Science 7",
+            "live": true
+          }
+        ],
+        "classes": [
+          "spanish",
+          "pe"
+        ]
+      }
+    },
+    {
+      "id": "two-singles",
+      "name": "Full week + two single-subject classes",
+      "built": "Full week + 2 single-subject classes",
+      "set": {
+        "days": 5,
+        "single": 2
+      }
+    },
+    {
+      "id": "aeon",
+      "name": "Premium: full week + Aeon School",
+      "built": "Full-week membership + Aeon tuition by semester",
+      "set": {
+        "school": "aeon"
+      }
     }
   ]
 }

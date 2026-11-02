@@ -44,9 +44,11 @@ From Garrett's pricing doc and mockup:
 - ICL packages ($2,875 live, $2,425 self-paced) include the full week. Days lock to 5, and à la carte ICL is hidden.
 - Need-based discount (10% or 20%) applies to the membership portion only, including the $1,200 inside an ICL package.
 - Small group classes: $1,250 fall or $1,800 spring per class, shown per semester. The year total for a fall start counts fall + spring.
-- ESA only applies to fall starts. A January start uses ESA the next fall.
-- Year total = monthly × payments (9 fall, 5 January) + semester fees. After ESA = year total − $7,000 (never below $0).
-- **Aeon** is built in, but `"hidden": true` in `plans.json` → `schools`, per Garrett's pricing doc (waiting on Aeon's partner rate). Delete that line to show it.
+- **Wyoming ESA is built into the prices** (Garrett, Nov 2): the ESA box is checked by default, for fall and January starts. The big number is per month with ESA = monthly − $7,000 ÷ payments (9 fall, 5 January), never below $0. Any ESA left over goes to semester fees. Unchecking ESA shows full price; January + no ESA shows the "missed this year's window, we'll help you apply" note.
+- Year total = monthly × payments + semester fees.
+- Fine print at the top of the summary: final plan and pricing are confirmed when the family meets with Garrett and signs a contract.
+- **Example plans** sit at the top as a starting point (`presets` in `plans.json`, each one a set of builder choices). Prices on the cards include ESA and any discount the family has checked.
+- **Aeon** is live: $1,200/mo full-week membership + $10,500 per semester Aeon tuition ($31,800/yr; $16,500 for a January start). Add `"hidden": true` to it in `schools` to hide it again.
 - Kept off the site: ICL payouts, per-hour math, margins, referral arrangements.
 
 All of Garrett's example plans and his ESA table were checked against the builder in testing.

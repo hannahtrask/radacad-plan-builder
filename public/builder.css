@@ -173,3 +173,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
   .mb-week { border: 0; border-radius: 999px; background: var(--teal); color: var(--ink); font-weight: 600; padding: 0.55rem 1.1rem; cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+/* example plans */
+.presets { display: grid; gap: 0.5rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .presets { grid-template-columns: 1fr 1fr; } }
+.preset { text-align: left; background: var(--white); border: 1.5px solid var(--line); border-radius: 14px; padding: 0.7rem 0.9rem; cursor: pointer; display: grid; gap: 0.1rem; transition: border-color .15s, background-color .15s; }
+.preset:hover { border-color: var(--ink); }
+.preset[aria-pressed="true"] { border-color: var(--purple); background: var(--purple-tint); box-shadow: inset 0 0 0 1px var(--purple); }
+.preset strong { font-weight: 600; font-size: 0.95rem; }
+.preset small { color: var(--muted); font-size: 0.82rem; }
+.pp { font-weight: 600; color: var(--teal-deep); font-size: 0.9rem; margin-top: 0.15rem; }
+.fine .confirm { color: var(--ink); font-weight: 600; }
