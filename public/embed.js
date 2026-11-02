@@ -74,7 +74,7 @@
 
     var st = {
       school: 'own', days: 2, checkin: false, close: false, coach: 0, single: 0,
-      classes: [], icl: [], start: 'fall', esa: true, aid: 0, preset: null,
+      classes: [], icl: [], start: 'fall', esa: true, aid: 0, jhsc: false, need: false, grade: 'ms', preset: null,
       dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
     };
 
@@ -106,7 +106,9 @@
       var memBase = pkg ? sc.membershipPart : M.prices[st.days];
       if (pkg) add(st.school === 'aeon' ? 'Full-week membership (with Aeon)' : sc.name.replace(', through RadAcad', '').replace('ICL Academy, ', 'Full week + ICL Academy, '), sc.monthly);
       else add(membershipName(st.days), memBase);
-      if (st.aid) add('Need-based discount on membership (' + st.aid + '%)', -memBase * st.aid / 100, 'sub');
+      if (st.aid) add('Income-based discount on membership (' + st.aid + '%)', -memBase * st.aid / 100, 'sub');
+      if (st.jhsc) add('JHSC merit scholarship, if awarded (shown at 50%)', -memBase * Math.min(0.5, 1 - st.aid / 100), 'sub');
+      if (st.need) lines.push({ label: 'Need-based scholarship: amount set by the Foundation committee', amount: 0, text: 'Apply', cls: 'sub' });
       if (st.checkin) add(A.checkin.name, A.checkin.price);
       if (st.close) add(A.close.name, A.close.price);
       if (st.coach) add(st.coach + ' hr/week of 1:1 coaching', A.coaching.price * st.coach);
@@ -170,7 +172,8 @@
         '<aside class="summary" aria-label="Your student’s week and price">' +
           '<div class="sum-head"><h3>Your student’s week</h3><button type="button" class="sheet-close">Close</button></div>' +
           '<div class="week" id="sum-week"></div>' +
-          '<div id="sum-extra"></div>' +
+          '<p class="legend" id="sum-legend"></p><div id="sum-extra"></div>' +
+          '<div class="disc" id="sum-disc"></div>' +
           '<ul class="lines" id="sum-lines"></ul>' +
           '<div class="total"><p class="lbl" id="sum-lbl"></p><p class="big" id="sum-big"></p><p class="esa" id="sum-esa"></p></div>' +
           '<ul class="fine" id="sum-fine"></ul>' +
@@ -216,10 +219,18 @@
     }
     function renderDays() {
       var need = classDays().length, pkg = isPkg();
-      $('#sec-days').innerHTML = '<div class="choices cols-4">' + [2, 3, 4, 5].map(function (n) {
+      var pct = Math.min(1, st.aid / 100 + (st.jhsc ? 0.5 : 0)), pay = startOf(st.start).payments;
+      $('#sec-days').innerHTML = '<div class="choices cols-2 grade">' +
+          [['ms', 'Middle school (grades 5–8)', 'Coach check-ins three times a day'], ['hs', 'High school (grades 9–12)', 'Coach check-ins twice a day']].map(function (g) {
+            return '<button type="button" class="choice" data-grade="' + g[0] + '" aria-pressed="' + (st.grade === g[0]) + '"><strong>' + g[1] + '</strong><small>' + g[2] + '</small></button>';
+          }).join('') + '</div>' +
+        '<div class="choices cols-4">' + [2, 3, 4, 5].map(function (n) {
         var off = (pkg && n !== 5) || (!pkg && n < need);
+        var base = M.prices[n], disc = Math.round(base * (1 - pct));
+        var txt = money(disc) + '/mo' + (pct ? ' <s>' + money(base) + '</s>' : '');
+        if (st.esa) txt += '<em>' + (disc * pay <= S.esaAnnual ? 'Covered by ESA' : money(Math.max(0, disc - S.esaAnnual / pay)) + '/mo with ESA') + '</em>';
         return '<button type="button" class="choice" data-days="' + n + '" aria-pressed="' + (st.days === n) + '"' + (off ? ' disabled' : '') + '>' +
-          '<strong>' + DAY_WORD[n] + '</strong><small>' + money(M.prices[n]) + '/mo</small></button>';
+          '<strong>' + DAY_WORD[n] + '</strong><small>' + txt + '</small></button>';
       }).join('') + '</div>' +
         (pkg ? '<p class="rule">' + esc(M.packageRule) + '</p>' : '') +
         (!pkg && need > 2 ? '<p class="note">Your classes meet on ' + need + ' different days, so the membership covers ' + need + ' days.</p>' : '') +
@@ -273,14 +284,8 @@
       $('#sec-start').innerHTML = '<div class="choices cols-2">' + data.starts.map(function (s) {
         return '<button type="button" class="choice" data-start="' + s.id + '" aria-pressed="' + (st.start === s.id) + '"><strong>' + esc(s.label) + '</strong><small>' + esc(s.desc) + '</small></button>';
       }).join('') + '</div>' +
-        '<div class="checks">' +
-          '<label class="toggle"><input type="checkbox" id="rma-esa" data-esa' + (st.esa ? ' checked' : '') + '><span>' + esc(data.esaLabel) + '</span></label>' +
-          data.aid.map(function (a) {
-            return '<label class="toggle"><input type="checkbox" id="rma-aid' + a.pct + '" data-aid="' + a.pct + '"' + (st.aid === a.pct ? ' checked' : '') + '><span>' + esc(a.label) + '</span></label>';
-          }).join('') +
-        '</div>' +
-        (st.start === 'jan' ? '<p class="note">' + esc(st.esa ? data.esaJanYes : data.esaJanNo) + '</p>' : '') +
-        (st.aid ? '<p class="note">Need-based discounts come through the RadAcad Foundation. It’s a quick verification, not a committee review: <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">apply here</a>.</p>' : '');
+        '<p class="note">Wyoming ESA, discounts, and scholarships are in the price panel' + (window.innerWidth < 960 ? ' (tap “See the week”)' : '') + '.</p>' +
+        (st.start === 'jan' ? '<p class="note">' + esc(st.esa ? data.esaJanYes : data.esaJanNo) + '</p>' : '');
     }
     function renderForm() {
       var F = st.form;
@@ -325,8 +330,10 @@
       $('#sum-week').innerHTML = DAYS.map(function (d) {
         var isOn = on.indexOf(d) !== -1, chips = [];
         if (isOn) {
-          chips.push(st.close ? 'Hourly check-ins' : 'Check-ins');
-          chips.push('Note home');
+          chips.push({ t: '8:30 goals', k: 'coach' });
+          if (st.close) chips.push({ t: 'Hourly check-ins', k: 'coach' });
+          else (st.grade === 'ms' ? ['10:30', '1:00', '3:00'] : ['11:00', '2:30']).forEach(function (t) { chips.push({ t: t + ' check-in', k: 'coach' }); });
+          chips.push({ t: '3:15 note home', k: 'coach' });
           if (pkg) chips.push(sc.chip);
           st.classes.forEach(function (id) { var c = cls(id); if (c.days.indexOf(d) !== -1) chips.push({ t: c.short, k: 'cls' }); });
           if (st.icl.length) chips.push({ t: 'ICL', k: 'icl' });
@@ -340,10 +347,20 @@
       var weekly = [];
       if (st.single) weekly.push(st.single + ' single-subject class' + (st.single > 1 ? 'es' : '') + ', 3 hours a week each');
       if (st.coach > 1) weekly.push(st.coach + ' hours of 1:1 coaching a week');
+      $('#sum-legend').textContent = st.close ? 'A coach checks in every hour on every membership day, plus morning goals and the afternoon note home.'
+        : 'Every membership day: morning goals, ' + (st.grade === 'ms' ? 'three' : 'two') + ' coach check-ins, and a note home.';
+      var aidNote = st.aid || st.need || st.jhsc ? '<p class="note">Apply through the RadAcad Foundation' + (st.aid && !st.need && !st.jhsc ? '. Income-based discounts are a quick verification, not a committee review' : '') + ': <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">radacadfoundation.org/apply</a></p>' : '';
+      $('#sum-disc').innerHTML = '<p class="disc-h">Before you look at the price, check what applies to you</p>' +
+        '<label class="toggle"><input type="checkbox" id="rma-esa" data-esa' + (st.esa ? ' checked' : '') + '><span><b>Wyoming ESA</b>: $7,000 a year for any student not in public school. Every family who has applied has been approved.</span></label>' +
+        '<label class="toggle"><input type="checkbox" id="rma-aid10" data-aid="10"' + (st.aid === 10 ? ' checked' : '') + '><span><b>10% off membership</b>: household income is 80–120% of the Teton County median.</span></label>' +
+        '<label class="toggle"><input type="checkbox" id="rma-aid20" data-aid="20"' + (st.aid === 20 ? ' checked' : '') + '><span><b>20% off membership</b>: household income is below 80% of the county median.</span></label>' +
+        '<label class="toggle"><input type="checkbox" id="rma-jhsc" data-jhsc' + (st.jhsc ? ' checked' : '') + '><span><b>Ski &amp; Snowboard Club merit scholarship</b>: active JHSC members can apply for 50% or 25% off membership.</span></label>' +
+        '<label class="toggle"><input type="checkbox" id="rma-need" data-need' + (st.need ? ' checked' : '') + '><span><b>Need-based scholarship</b>: families who need more than the automatic discounts can apply to the RadAcad Foundation.</span></label>' +
+        aidNote;
       $('#sum-extra').innerHTML = weekly.length ? '<ul class="weekly">' + weekly.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' : '';
 
       $('#sum-lines').innerHTML = r.lines.map(function (l) {
-        return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + money(l.amount) + '/mo</span></li>';
+        return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + (l.text ? esc(l.text) : money(l.amount) + '/mo') + '</span></li>';
       }).join('') + r.sem.map(function (l) { return '<li class="semline"><span>' + esc(l.label) + '</span><span>' + esc(l.text) + '</span></li>'; }).join('');
 
       var fall = st.start === 'fall';
@@ -374,7 +391,7 @@
       if (!el || !el.tagName) return '';
       if (el.id) return '#' + el.id;
       var d = el.dataset || {};
-      var keys = ['preset', 'school', 'days', 'dec', 'inc', 'dept', 'start', 'addIcl', 'fmt'];
+      var keys = ['preset', 'grade', 'school', 'days', 'dec', 'inc', 'dept', 'start', 'addIcl', 'fmt'];
       for (var i = 0; i < keys.length; i++) if (d[keys[i]] !== undefined) return keys[i] + ':' + d[keys[i]] + (d.live || '');
       return '';
     }
@@ -401,6 +418,7 @@
       var b = e.target.closest('button'); if (!b || b.disabled || b.type === 'submit') return;
       var d = b.dataset;
       if (d.preset) { applyPreset(d.preset); started(); render(); return; }
+      if (d.grade) { st.grade = d.grade; render(); return; }
       st.preset = null;
       if (d.school) { st.school = d.school; track('plan_builder_school', { school: d.school }); }
       else if (d.days) st.days = +d.days;
@@ -416,11 +434,18 @@
     });
     builder.addEventListener('change', function (e) {
       var t = e.target, d = t.dataset;
-      if (!t.hasAttribute('data-esa') && !d.aid) st.preset = null;
+      st.preset = null;
       if (d.toggle) st[d.toggle] = t.checked;
       else if (d.cls) st.classes = t.checked ? st.classes.concat(d.cls) : st.classes.filter(function (x) { return x !== d.cls; });
-      else if (t.hasAttribute('data-esa')) st.esa = t.checked;
+      else return;
+      started(); render();
+    });
+    $('.summary').addEventListener('change', function (e) {
+      var t = e.target, d = t.dataset;
+      if (t.hasAttribute('data-esa')) st.esa = t.checked;
       else if (d.aid) st.aid = t.checked ? +d.aid : 0;
+      else if (t.hasAttribute('data-jhsc')) st.jhsc = t.checked;
+      else if (t.hasAttribute('data-need')) st.need = t.checked;
       else return;
       started(); render();
     });
@@ -465,7 +490,7 @@
         answers: {
           coursework: sc.name,
           days: isPkg() ? 'Full week' : DAY_WORD[st.days],
-          needs: [st.esa ? 'Has Wyoming ESA' : '', st.aid ? st.aid + '% need-based discount' : ''].filter(Boolean),
+          needs: [st.grade === 'ms' ? 'Middle school' : 'High school', st.esa ? 'Has Wyoming ESA' : 'No ESA', st.aid ? st.aid + '% income-based discount' : '', st.jhsc ? 'Applying for JHSC merit scholarship' : '', st.need ? 'Interested in need-based scholarship' : ''].filter(Boolean),
           suggested: ''
         },
         plan: {

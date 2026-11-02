@@ -42,7 +42,8 @@ Follows Garrett's mockup ("Build your RadAcad week"), styled to the Squarespace 
 From Garrett's pricing doc and mockup:
 - Membership by days: 2 days $350, 3 days $650, 4 days $950, full week $1,200. Small group classes set the minimum: picking classes on four different days moves the plan to four days, and smaller day counts are disabled.
 - ICL packages ($2,875 live, $2,425 self-paced) include the full week. Days lock to 5, and à la carte ICL is hidden.
-- Need-based discount (10% or 20%) applies to the membership portion only, including the $1,200 inside an ICL package.
+- Discounts live in the "check what applies to you" box in the summary (Garrett's artifact, Nov 2): Wyoming ESA (on by default), 10% or 20% income-based, JHSC merit scholarship (shown at 50%; stacks with income-based, capped at 100%), and need-based scholarship (no amount, shows "Apply"). All percentage discounts apply to the membership portion only, including the $1,200 inside ICL and Aeon packages. Day buttons show the discounted and with-ESA price.
+- Middle school / high school choice sets the daily schedule in the week grid: 8:30 goals, check-ins at 10:30, 1:00, 3:00 (MS) or 11:00, 2:30 (HS), 3:15 note home. Close support replaces them with hourly check-ins.
 - Small group classes: $1,250 fall or $1,800 spring per class, shown per semester. The year total for a fall start counts fall + spring.
 - **Wyoming ESA is built into the prices** (Garrett, Nov 2): the ESA box is checked by default, for fall and January starts. The big number is per month with ESA = monthly − $7,000 ÷ payments (9 fall, 5 January), never below $0. Any ESA left over goes to semester fees. Unchecking ESA shows full price; January + no ESA shows the "missed this year's window, we'll help you apply" note.
 - Year total = monthly × payments + semester fees.
