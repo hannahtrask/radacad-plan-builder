@@ -79,7 +79,7 @@
 
     var BLANK = { school: 'own', days: ['Mon', 'Wed'], checkin: false, close: false, coach: 0, single: 0, classes: [], icl: [] };
     var st = Object.assign(JSON.parse(JSON.stringify(BLANK)), {
-      grade: null, gradeOut: false, start: 'fall', esa: true, aid: 0, merit: 0, need: 0,
+      grade: null, start: 'fall', esa: true, aid: 0, merit: 0, need: 0,
       preset: null, notice: '', dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
     });
 
@@ -316,14 +316,11 @@
     function renderGrade() {
       $('#sec-grade').innerHTML = '<div class="choices grades">' + S.grades.map(function (g) {
         return '<button type="button" class="choice" data-grade="' + g + '" aria-pressed="' + (st.grade === +g) + '"><strong>' + g + '</strong></button>';
-      }).join('') + '<button type="button" class="choice wide" data-grade="out" aria-pressed="' + st.gradeOut + '"><strong>Another grade</strong></button></div>' +
-        (st.gradeOut ? '<div class="out-msg"><p><strong>RadAcad is for students in grades 5–12.</strong> If your student is younger or older, we’d still love to talk. Teton Tutors may be a good fit.</p>' +
-          '<a class="btn" href="mailto:' + esc(S.contactEmail) + '">Email ' + esc(S.contactEmail) + '</a></div>' : '') +
+      }).join('') + '</div>' +
         (st.grade !== null ? '<p class="note">' + (isMS()
           ? 'Middle schoolers set goals with a coach each morning, get a check-in at every transition, and finish with a final check-in.'
           : 'High schoolers set goals with a coach each morning, get a midday check-in, and finish with a final check-in. Close support adds hourly check-ins.') +
           (groupsOK() ? ' Small group classes are open to grades 6–8.' : '') + '</p>' : '');
-      $('#rest').hidden = st.gradeOut;
     }
     function presetOK(p) { return !p.grades || st.grade === null || (st.grade >= p.grades[0] && st.grade <= p.grades[1]); }
     function applyPreset(id, quiet) {
@@ -581,8 +578,7 @@
       var b = e.target.closest('button'); if (!b || b.disabled || b.type === 'submit') return;
       var d = b.dataset;
       if (d.grade) {
-        if (d.grade === 'out') { st.gradeOut = true; st.grade = null; }
-        else { st.gradeOut = false; st.grade = +d.grade; track('plan_builder_grade', { grade: st.grade }); }
+        st.grade = +d.grade; track('plan_builder_grade', { grade: st.grade });
         started(); render(); return;
       }
       if (d.preset) { applyPreset(d.preset); started(); render(); return; }

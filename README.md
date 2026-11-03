@@ -34,7 +34,7 @@ squarespace/
 Squarespace's GA4 integration loads `gtag`, so these events fire automatically: `plan_builder_start` (first choice made), `plan_builder_school` (which school option), `plan_builder_submit` (`value` = monthly total).
 
 ## How it's laid out
-- **Left, seven sections:** 1) Grade (5–12, or "another grade" → contact message; grade sets the daily routine, small group classes show for 6–8 only, close support for 9–12 only) 2) Example plans 3) Where does school happen? (with "What is ICL Academy?" / "What is Aeon School?" explainers) 4) Which days? (tap individual days; tier buttons fill a default pattern) 5) Add-ons, small group classes, ICL à la carte 6) Start date 7) Send.
+- **Left, seven sections:** 1) Grade (5–12; grade sets the daily routine, small group classes show for 6–8 only, close support for 9–12 only) 2) Example plans 3) Where does school happen? (with "What is ICL Academy?" / "What is Aeon School?" explainers) 4) Which days? (tap individual days; tier buttons fill a default pattern) 5) Add-ons, small group classes, ICL à la carte 6) Start date 7) Send.
 - **Right:** a timed week (8:00–3:45) plus the price. On phones, a black bar shows the total and "See the week" opens it full screen.
 
 ## The week planner
