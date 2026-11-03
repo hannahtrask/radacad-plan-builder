@@ -62,8 +62,7 @@
       "4": 950,
       "5": 1200
     },
-    "dayNote": "Each day includes morning goal-setting with a coach, a check-in during the day, and a note home. Middle schoolers get check-ins throughout the day.",
-    "packageRule": "Online school through RadAcad is full week. A student whose whole school is on a laptop needs someone there every day."
+    "dayNote": "Pick the days your student will be here. Membership is priced by how many days you choose: up to two days is $350, each extra day adds $300, and the full week is $1,200."
   },
   "addOns": {
     "checkin": {
@@ -74,19 +73,22 @@
     "close": {
       "name": "Close support",
       "price": 250,
-      "desc": "Check-ins every hour on every membership day. For high schoolers who need more structure."
+      "desc": "Check-ins every hour on every membership day. For high schoolers who need more structure.",
+      "minGrade": 9
     },
     "coaching": {
       "name": "1:1 coaching",
       "price": 650,
-      "max": 3,
+      "max": 5,
       "desc": "One hour a week with a coach or tutor, in any subject. $650/mo per weekly hour."
     },
     "single": {
       "name": "Individual single-subject class",
       "price": 1950,
       "max": 4,
-      "desc": "A full course taught 1:1, three hours a week. $1,950/mo each."
+      "desc": "A full course taught 1:1, three hours a week. $1,950/mo each.",
+      "sessionMin": 60,
+      "sessions": 3
     }
   },
   "smallGroup": {
@@ -104,6 +106,18 @@
         "days": [
           "Mon",
           "Wed"
+        ],
+        "sessions": [
+          [
+            "Mon",
+            "08:30",
+            "10:00"
+          ],
+          [
+            "Wed",
+            "08:30",
+            "10:00"
+          ]
         ]
       },
       {
@@ -115,6 +129,18 @@
         "days": [
           "Mon",
           "Wed"
+        ],
+        "sessions": [
+          [
+            "Mon",
+            "10:15",
+            "11:45"
+          ],
+          [
+            "Wed",
+            "10:15",
+            "11:45"
+          ]
         ]
       },
       {
@@ -126,6 +152,18 @@
         "days": [
           "Mon",
           "Wed"
+        ],
+        "sessions": [
+          [
+            "Mon",
+            "12:30",
+            "14:00"
+          ],
+          [
+            "Wed",
+            "12:30",
+            "14:00"
+          ]
         ]
       },
       {
@@ -137,6 +175,18 @@
         "days": [
           "Tue",
           "Thu"
+        ],
+        "sessions": [
+          [
+            "Tue",
+            "08:30",
+            "10:00"
+          ],
+          [
+            "Thu",
+            "08:30",
+            "10:00"
+          ]
         ]
       },
       {
@@ -148,6 +198,18 @@
         "days": [
           "Tue",
           "Thu"
+        ],
+        "sessions": [
+          [
+            "Tue",
+            "12:30",
+            "14:00"
+          ],
+          [
+            "Thu",
+            "12:30",
+            "14:00"
+          ]
         ]
       },
       {
@@ -159,9 +221,23 @@
         "days": [
           "Mon",
           "Tue"
+        ],
+        "sessions": [
+          [
+            "Mon",
+            "12:30",
+            "14:00"
+          ],
+          [
+            "Tue",
+            "14:00",
+            "15:30"
+          ]
         ]
       }
-    ]
+    ],
+    "minGrade": 6,
+    "maxGrade": 8
   },
   "iclAlaCarte": {
     "live": 280,
@@ -177,7 +253,9 @@
       "World Languages",
       "AP",
       "Electives"
-    ]
+    ],
+    "liveMin": 45,
+    "workMin": 210
   },
   "aid": [
     {
@@ -807,7 +885,11 @@
         "classes": [
           "english"
         ]
-      }
+      },
+      "grades": [
+        6,
+        8
+      ]
     },
     {
       "id": "full-coaching",
@@ -858,7 +940,11 @@
           "spanish",
           "pe"
         ]
-      }
+      },
+      "grades": [
+        6,
+        8
+      ]
     },
     {
       "id": "two-singles",
@@ -877,5 +963,46 @@
         "school": "aeon"
       }
     }
-  ]
+  ],
+  "day": {
+    "start": "08:00",
+    "end": "15:45",
+    "goals": [
+      "08:15",
+      "08:30"
+    ],
+    "final": [
+      "15:15",
+      "15:30"
+    ],
+    "hsCheckin": "12:00",
+    "note": "Our class times are set. Times for 1:1, single-subject classes, and ICL work are estimates; we’ll set them with you."
+  },
+  "explain": {
+    "icl": {
+      "title": "What is ICL Academy?",
+      "body": "ICL Academy is an accredited online school and a RadAcad partner. It follows a traditional, independent model: students take full online courses with ICL teachers and do their coursework here at RadAcad, with a coach keeping them on track. Families can enroll full time through RadAcad, or add up to three ICL courses to their own plan."
+    },
+    "aeon": {
+      "title": "What is Aeon School?",
+      "body": "Aeon is a project-based, mastery-focused online school and a RadAcad partner. It runs seminar-style classes that emphasize deep learning, critical thinking, and interdisciplinary work, and it’s aimed at students headed for selective colleges. Students take Aeon classes here, with daily structure and in-person guidance from RadAcad."
+    }
+  },
+  "scholarships": {
+    "merit": {
+      "title": "Ski & Snowboard Club merit scholarship",
+      "desc": "for active Jackson Hole Ski & Snowboard Club members, awarded annually.",
+      "options": [
+        25,
+        50
+      ]
+    },
+    "need": {
+      "title": "Need-based scholarship",
+      "desc": "for families who need more than the automatic discounts, awarded by the RadAcad Foundation committee. Slide to an estimated yearly amount.",
+      "min": 2000,
+      "max": 15000,
+      "step": 500
+    }
+  }
 }

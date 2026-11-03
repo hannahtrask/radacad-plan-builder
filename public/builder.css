@@ -137,7 +137,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .day { border-radius: 10px; background: var(--white); border: 1.5px solid var(--line); min-height: 124px; padding: 6px; font-size: 0.75rem; line-height: 1.25; min-width: 0; transition: background-color .2s, border-color .2s; }
 .day.on { background: linear-gradient(165deg, var(--purple-tint), var(--teal-tint)); border-color: transparent; }
 .day b { display: flex; align-items: center; gap: 4px; font-size: 0.82rem; margin-bottom: 5px; }
-.day.on b::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--neon); }
+
 .home { display: block; color: var(--muted); }
 .chip { display: block; margin: 0 0 3px; padding: 2px 5px; border-radius: 6px; background: var(--white); border: 1px solid var(--line); font-size: 0.68rem; line-height: 1.3; overflow-wrap: break-word; }
 .chip.cls { background: var(--ink); color: var(--white); border-color: var(--ink); font-weight: 600; }
@@ -195,3 +195,60 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .disc .toggle { align-items: flex-start; font-size: 0.86rem; line-height: 1.4; }
 .disc .toggle input { margin-top: 0.1rem; }
 .disc .note { margin: 0; }
+
+/* ---------- grade ---------- */
+.choices.grades { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.grades .choice { width: auto; min-width: 3.1rem; text-align: center; padding: 0.6rem 0.9rem; border-radius: 999px; }
+.grades .choice.wide { min-width: 0; }
+.out-msg { margin-top: 0.9rem; background: var(--purple-tint); border-radius: 14px; padding: 1rem; display: grid; gap: 0.75rem; justify-items: start; }
+
+/* ---------- explanations ---------- */
+.explain { display: grid; gap: 0.4rem; margin-top: 0.75rem; }
+.explain details, .explain-inline { border: 1.5px solid var(--line); border-radius: 12px; padding: 0.55rem 0.8rem; background: var(--white); }
+.explain-inline { margin-top: 0.6rem; }
+.explain summary, .explain-inline summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; color: var(--teal-deep); }
+.explain details p, .explain-inline p { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; max-width: 62ch; }
+
+/* ---------- day picker ---------- */
+.daypick { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.dayb { width: 3.8rem; height: 3.4rem; border-radius: 14px; border: 1.5px solid var(--line); background: var(--white); cursor: pointer; display: grid; place-content: center; font-weight: 600; line-height: 1.1; }
+.dayb:hover { border-color: var(--ink); }
+.dayb[aria-pressed="true"] { background: var(--purple); border-color: var(--purple); color: var(--white); }
+.dayb small { font-size: 0.65rem; font-weight: 500; opacity: 0.9; }
+.tiers { margin-top: 0.25rem; }
+
+/* ---------- timed week ---------- */
+.cal-grid { display: grid; grid-template-columns: 2.1rem repeat(5, minmax(0, 1fr)); gap: 4px; margin-bottom: 0.5rem; }
+.axis { position: relative; margin-top: 1.4rem; }
+.axis span { position: absolute; right: 2px; transform: translateY(-50%); font-size: 0.62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.col .dh { font-size: 0.78rem; font-weight: 600; text-align: center; height: 1.4rem; margin: 0; color: var(--muted); }
+.col.on .dh { color: var(--ink); }
+.track { position: relative; border-radius: 10px; background: var(--white); border: 1.5px solid var(--line); overflow: hidden; }
+.col.on .track { background: linear-gradient(170deg, var(--purple-tint), var(--teal-tint)); border-color: transparent; }
+.hl { position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(0, 0, 0, 0.08); }
+.home { position: absolute; top: 0.5rem; left: 0; right: 0; text-align: center; font-size: 0.68rem; color: var(--muted); }
+.blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; padding: 1px 3px; font-size: 0.6rem; line-height: 1.15; font-weight: 600; overflow: hidden; background: var(--white); border: 1px solid var(--line); }
+.blk span { display: block; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.blk.tiny span { white-space: nowrap; -webkit-line-clamp: 1; font-size: 0.56rem; }
+.blk.coach { background: var(--teal-deep); border-color: var(--teal-deep); color: var(--white); }
+.blk.cls { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.blk.one { background: var(--purple); border-color: var(--purple); color: var(--white); }
+.blk.icl { background: var(--teal); border-color: var(--teal); color: var(--ink); }
+.blk.lunch { background: transparent; border: 0; color: var(--muted); font-weight: 400; text-align: center; }
+.blk.est { border-style: dashed; border-width: 1.5px; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.18) 0 4px, transparent 4px 8px); }
+.mk { position: absolute; left: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--neon); border: 1.5px solid var(--ink); transform: translate(1px, -50%); z-index: 2; }
+.legend { list-style: none; margin: 0.3rem 0 0.4rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; font-size: 0.75rem; color: var(--muted); }
+.legend li { display: inline-flex; align-items: center; gap: 0.3rem; }
+.sw { width: 0.8rem; height: 0.8rem; border-radius: 3px; display: inline-block; }
+.sw.coach { background: var(--teal-deep); } .sw.cls { background: var(--ink); } .sw.one { background: var(--purple); } .sw.icl { background: var(--teal); }
+.sw.est { border: 1.5px dashed var(--ink); }
+.mk-sw { width: 7px; height: 7px; border-radius: 50%; background: var(--neon); border: 1.5px solid var(--ink); display: inline-block; }
+.cal-note { font-size: 0.75rem; color: var(--muted); margin: 0 0 0.6rem; }
+
+/* ---------- scholarships ---------- */
+.disc-group { display: grid; gap: 0.35rem; border-top: 1px solid var(--line); padding-top: 0.55rem; }
+.dg-h { font-size: 0.86rem; line-height: 1.4; }
+.slider-row { display: flex; align-items: center; gap: 0.75rem; }
+.slider-row input[type="range"] { flex: 1; accent-color: var(--purple); }
+.slider-row output { font-weight: 600; font-size: 0.86rem; min-width: 6.5rem; text-align: right; font-variant-numeric: tabular-nums; }
+.range-ends { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-right: 7.25rem; }

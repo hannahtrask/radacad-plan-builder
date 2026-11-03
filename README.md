@@ -34,25 +34,23 @@ squarespace/
 Squarespace's GA4 integration loads `gtag`, so these events fire automatically: `plan_builder_start` (first choice made), `plan_builder_school` (which school option), `plan_builder_submit` (`value` = monthly total).
 
 ## How it's laid out
-Follows Garrett's mockup ("Build your RadAcad week"), styled to the Squarespace site.
-- **Left, five sections:** 1) Where does school happen? (own/hybrid, ICL live, ICL self-paced, Aeon when it's turned on) 2) How many days? 3) Add what your student needs (check-in, close support, 1:1 coaching, single-subject classes, small group classes, ICL à la carte with a searchable catalog) 4) Start date, Wyoming ESA, need-based discount 5) Send the plan.
-- **Right:** the student's Mon–Fri week and the price, updating live, plus a "Send this plan and book a call" button. On phones a black bar shows the total, and "See the week" opens the full summary.
+- **Left, seven sections:** 1) Grade (5–12, or "another grade" → contact message; grade sets the daily routine, small group classes show for 6–8 only, close support for 9–12 only) 2) Example plans 3) Where does school happen? (with "What is ICL Academy?" / "What is Aeon School?" explainers) 4) Which days? (tap individual days; tier buttons fill a default pattern) 5) Add-ons, small group classes, ICL à la carte 6) Start date 7) Send.
+- **Right:** a timed week (8:00–3:45) plus the price. On phones, a black bar shows the total and "See the week" opens it full screen.
+
+## The week planner
+- Every membership day: **Goals** 8:15–8:30, **Lunch** 12:00–12:30, **Final check-in** 3:15–3:30.
+- Check-ins (green dots): high school gets one midday check-in; middle school gets one at every transition (the end of each block); **close support** adds hourly check-ins.
+- **RadAcad small group classes** sit at their real times (`smallGroup.classes[].sessions`).
+- **Estimated** (dashed, striped): 1:1 coaching (1 hr per weekly hour), single-subject classes (three 1-hr sessions each), ICL à la carte (45 min live for live courses + 3.5 hrs independent work per course), weekly check-in session (30 min), and full-time ICL/Aeon (classes mornings, coursework afternoons).
+- Estimated items are spread across membership days and through the day (`PREF` in `schedule()` in `embed.js`). Anything that doesn't fit is listed under the grid.
 
 ## Pricing rules
-From Garrett's pricing doc and mockup:
-- Membership by days: 2 days $350, 3 days $650, 4 days $950, full week $1,200. Small group classes set the minimum: picking classes on four different days moves the plan to four days, and smaller day counts are disabled.
-- ICL packages ($2,875 live, $2,425 self-paced) include the full week. Days lock to 5, and à la carte ICL is hidden.
-- Discounts live in the "check what applies to you" box in the summary (Garrett's artifact, Nov 2): Wyoming ESA (on by default), 10% or 20% income-based, JHSC merit scholarship (shown at 50%; stacks with income-based, capped at 100%), and need-based scholarship (no amount, shows "Apply"). All percentage discounts apply to the membership portion only, including the $1,200 inside ICL and Aeon packages. Day buttons show the discounted and with-ESA price.
-- Middle school / high school choice sets the daily schedule in the week grid: 8:30 goals, check-ins at 10:30, 1:00, 3:00 (MS) or 11:00, 2:30 (HS), 3:15 note home. Close support replaces them with hourly check-ins.
-- Small group classes: $1,250 fall or $1,800 spring per class, shown per semester. The year total for a fall start counts fall + spring.
-- **Wyoming ESA is built into the prices** (Garrett, Nov 2): the ESA box is checked by default, for fall and January starts. The big number is per month with ESA = monthly − $7,000 ÷ payments (9 fall, 5 January), never below $0. Any ESA left over goes to semester fees. Unchecking ESA shows full price; January + no ESA shows the "missed this year's window, we'll help you apply" note.
-- Year total = monthly × payments + semester fees.
-- Fine print at the top of the summary: "Final plan and pricing to be confirmed when your family meets with Radical Minds Academy." (`settings.finePrint`)
-- **Example plans** sit at the top as a starting point (`presets` in `plans.json`, each one a set of builder choices). Prices on the cards include ESA and any discount the family has checked.
-- **Aeon** is live: $1,200/mo full-week membership + $10,500 per semester Aeon tuition ($31,800/yr; $16,500 for a January start). Add `"hidden": true` to it in `schools` to hide it again.
-- Kept off the site: ICL payouts, per-hour math, margins, referral arrangements.
-
-All of Garrett's example plans and his ESA table were checked against the builder in testing.
+- Membership by days picked: 1–2 days $350, 3 days $650, 4 days $950, 5 days $1,200. Two-day plans are Mon–Thu. Picking a class adds its days; removing a day removes classes that meet that day (with a note).
+- ICL packages ($2,875 live, $2,425 self-paced) and Aeon ($1,200/mo + $10,500/semester) include the full week.
+- Income-based 10%/20% and JHSC merit 25%/50% apply to the membership portion only (capped at 100% combined).
+- Need-based scholarship: slider, None or $2,000–$15,000 a year, applied like ESA as a yearly credit.
+- **Wyoming ESA** ($7,000/yr) is on by default for fall and January. Headline price = monthly − (ESA + need-based) ÷ payments (9 fall, 5 January), never below $0; leftover credit goes to semester fees.
+- Fine print: `settings.finePrint`.
 
 ## Updating prices, classes, and courses (billed hourly)
 Edit `public/plans.json`, then `git add . && git commit -m "Update" && git push`.
