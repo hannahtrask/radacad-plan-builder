@@ -255,3 +255,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 
 .dayb:disabled { cursor: not-allowed; opacity: 0.75; }
 .dayb:disabled:hover { border-color: var(--purple); }
+
+.cls em { display: block; font-style: normal; font-size: 0.78rem; font-weight: 600; margin-top: 0.2rem; }
+.cls em.fits { color: var(--teal-deep); }
+.cls em.adds { color: var(--purple-deep); }
+.cls.needs { border-style: dashed; }
+.cls-note { grid-column: 1 / -1; margin: 0.25rem 0 0; }

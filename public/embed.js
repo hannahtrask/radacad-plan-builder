@@ -394,11 +394,21 @@
         stepper('coach', st.coach, A.coaching.max, A.coaching, 'Weekly hours of 1:1 coaching') +
         stepper('single', st.single, A.single.max, A.single, 'Single-subject classes');
       $('#sec-classes-wrap').hidden = !groupsOK();
+      var cur = st.days.length, curPrice = membershipPrice(cur);
       $('#sec-classes').innerHTML = G.classes.map(function (c) {
         var on = st.classes.indexOf(c.id) !== -1;
-        return '<label class="cls"><input type="checkbox" id="rma-cls-' + c.id + '" data-cls="' + c.id + '"' + (on ? ' checked' : '') + '>' +
-          '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + ', with ' + esc(c.who) + '</small></span></label>';
-      }).join('');
+        var missing = c.days.filter(function (d) { return st.days.indexOf(d) === -1; });
+        var flag = '';
+        if (on) flag = '<em class="fits">On your plan</em>';
+        else if (!missing.length) flag = '<em class="fits">Fits your days</em>';
+        else {
+          var bump = membershipPrice(Math.min(5, cur + missing.length)) - curPrice;
+          flag = '<em class="adds">Adds ' + missing.map(function (d) { return DAY_FULL[d]; }).join(' and ') + ' to your membership' +
+            (bump > 0 ? ' (+' + money(bump) + '/mo)' : '') + '</em>';
+        }
+        return '<label class="cls' + (!on && missing.length ? ' needs' : '') + '"><input type="checkbox" id="rma-cls-' + c.id + '" data-cls="' + c.id + '"' + (on ? ' checked' : '') + '>' +
+          '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + ', with ' + esc(c.who) + '</small>' + flag + '</span></label>';
+      }).join('') + (st.clsNotice && st.notice ? '<p class="rule cls-note" role="status">' + esc(st.notice) + '</p>' : '');
     }
     function renderIcl() {
       var wrap = $('#sec-icl-wrap');
@@ -578,6 +588,7 @@
         st.grade = +d.grade; track('plan_builder_grade', { grade: st.grade });
         started(); render(); return;
       }
+      st.clsNotice = false;
       if (d.preset) { applyPreset(d.preset); started(); render(); return; }
       st.preset = null;
       if (d.school) { var wasPkg = isPkg(); st.school = d.school; if (wasPkg && st.school === 'own') setDayCount(2); track('plan_builder_school', { school: d.school }); }
@@ -596,7 +607,14 @@
     builder.addEventListener('change', function (e) {
       var t = e.target, d = t.dataset;
       if (d.toggle) { st.preset = null; st[d.toggle] = t.checked; }
-      else if (d.cls) { st.preset = null; st.notice = ''; st.classes = t.checked ? st.classes.concat(d.cls) : st.classes.filter(function (x) { return x !== d.cls; }); }
+      else if (d.cls) {
+        st.preset = null; st.notice = ''; st.clsNotice = false;
+        if (t.checked) {
+          var add = cls(d.cls).days.filter(function (x) { return st.days.indexOf(x) === -1; });
+          if (add.length) { st.notice = 'We added ' + add.map(function (x) { return DAY_FULL[x]; }).join(' and ') + ' to your membership for ' + cls(d.cls).name + '.'; st.clsNotice = true; }
+          st.classes = st.classes.concat(d.cls);
+        } else st.classes = st.classes.filter(function (x) { return x !== d.cls; });
+      }
       else return;
       started(); render();
     });
