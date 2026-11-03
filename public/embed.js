@@ -411,7 +411,7 @@
             (bump > 0 ? ' (+' + money(bump) + '/mo)' : '') + '</em>';
         }
         return '<label class="cls' + (!on && missing.length ? ' needs' : '') + '"><input type="checkbox" id="rma-cls-' + c.id + '" data-cls="' + c.id + '"' + (on ? ' checked' : '') + '>' +
-          '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + ', with ' + esc(c.who) + '</small>' + flag + '</span></label>';
+          '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + '</small>' + flag + '</span></label>';
       }).join('') + (st.clsNotice && st.notice ? '<p class="rule cls-note" role="status">' + esc(st.notice) + '</p>' : '');
     }
     function renderIcl() {
