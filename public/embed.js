@@ -127,8 +127,12 @@
       if (isPkg()) { st.days = DAYS.slice(); st.icl = []; }
       if (!groupsOK()) st.classes = [];
       if (!closeOK()) st.close = false;
+      var keepIcl = st.icl.filter(function (c) { return courseOK(c.n); });
+      if (keepIcl.length < st.icl.length) { st.iclDropped = st.icl.filter(function (c) { return !courseOK(c.n); }).map(function (c) { return c.n; }); st.icl = keepIcl; }
       st.days = sortDays(st.days.concat(classDays()));
     }
+    function levelOK(c) { return st.grade === null || (st.grade <= 8 ? c.ms : !c.ms); }
+    function courseOK(n) { var c = data.iclCourses.filter(function (x) { return x.n === n; })[0]; return !c || levelOK(c); }
     function membershipPrice(n) { return n <= 2 ? M.prices['2'] : M.prices[String(n)]; }
     function membershipName(n) { return n >= 5 ? 'Full-week membership' : n <= 2 ? 'Two-day membership' : DAY_WORD[n].replace(' days', '-day') + ' membership'; }
 
@@ -414,17 +418,22 @@
       var wrap = $('#sec-icl-wrap');
       wrap.hidden = isPkg();
       if (isPkg()) return;
-      $('#sec-depts').innerHTML = IC.departments.map(function (d) {
+      var pool = data.iclCourses.filter(levelOK);
+      if (st.dept !== 'All' && !pool.some(function (c) { return c.d === st.dept; })) st.dept = 'All';
+      $('#sec-depts').innerHTML = IC.departments.filter(function (d) { return d === 'All' || pool.some(function (c) { return c.d === d; }); }).map(function (d) {
         return '<button type="button" class="pill" data-dept="' + esc(d) + '" aria-pressed="' + (d === st.dept) + '">' + esc(d) + '</button>';
       }).join('');
       var q = st.q.trim().toLowerCase(), full = st.icl.length >= IC.max;
-      var rows = data.iclCourses.filter(function (c) { return (st.dept === 'All' || c.d === st.dept) && (!q || c.n.toLowerCase().indexOf(q) !== -1); });
+      var rows = pool.filter(function (c) { return (st.dept === 'All' || c.d === st.dept) && (!q || c.n.toLowerCase().indexOf(q) !== -1); });
       $('#sec-icl-list').innerHTML = rows.length ? rows.map(function (c) {
         var on = st.icl.some(function (x) { return x.n === c.n; });
         return '<div class="icl-row"><span>' + esc(c.n) + '<small>' + (c.ms ? 'middle school' : 'high school') + '</small></span>' +
           '<button type="button" data-add-icl="' + esc(c.n) + '"' + (on || full ? ' disabled' : '') + '>' + (on ? 'Added' : 'Add') + '</button></div>';
       }).join('') : '<div class="icl-row"><span>No courses match. Try a shorter search.</span></div>';
-      $('#sec-icl-picked').innerHTML = (full ? '<p class="note">That’s the limit of three courses.</p>' : '') + st.icl.map(function (c, i) {
+      $('#sec-icl-picked').innerHTML =
+        (st.grade !== null ? '<p class="note level-note">Showing ' + (st.grade <= 8 ? 'middle school' : 'high school') + ' courses for grade ' + st.grade + '.</p>' : '') +
+        (st.iclDropped && st.iclDropped.length ? '<p class="rule" role="status">We took ' + esc(st.iclDropped.join(' and ')) + ' off the plan, since ' + (st.iclDropped.length > 1 ? 'they’re ' : 'it’s a ') + (st.grade <= 8 ? 'high school' : 'middle school') + (st.iclDropped.length > 1 ? ' courses.' : ' course.') + '</p>' : '') +
+        (full ? '<p class="note">That’s the limit of three courses.</p>' : '') + st.icl.map(function (c, i) {
         return '<div class="picked-row"><span>' + esc(c.n) + '</span><span class="fmt">' +
           '<button type="button" data-fmt="' + i + '" data-live="1" aria-pressed="' + c.live + '">Live ' + money(IC.live) + '</button>' +
           '<button type="button" data-fmt="' + i + '" data-live="0" aria-pressed="' + !c.live + '">Self-paced ' + money(IC.async) + '</button>' +
@@ -585,10 +594,10 @@
       var b = e.target.closest('button'); if (!b || b.disabled || b.type === 'submit') return;
       var d = b.dataset;
       if (d.grade) {
-        st.grade = +d.grade; track('plan_builder_grade', { grade: st.grade });
+        st.grade = +d.grade; st.iclDropped = null; track('plan_builder_grade', { grade: st.grade });
         started(); render(); return;
       }
-      st.clsNotice = false;
+      st.clsNotice = false; if (!d.grade) st.iclDropped = null;
       if (d.preset) { applyPreset(d.preset); started(); render(); return; }
       st.preset = null;
       if (d.school) { var wasPkg = isPkg(); st.school = d.school; if (wasPkg && st.school === 'own') setDayCount(2); track('plan_builder_school', { school: d.school }); }
