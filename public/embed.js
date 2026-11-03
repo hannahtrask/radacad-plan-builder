@@ -358,14 +358,10 @@
     function renderDays() {
       var pkg = isPkg(), n = st.days.length, locked = classDays();
       var pct = Math.min(100, st.aid + st.merit) / 100, pay = startOf(st.start).payments, credit = (st.esa ? S.esaAnnual : 0) + st.need;
-      if (pkg) {
-        $('#sec-days').innerHTML = '<p class="note">' + esc(school(st.school).name.replace(', through RadAcad', '')) + ' includes the full-week membership, Monday through Friday.</p>';
-        return;
-      }
       $('#sec-days').innerHTML =
         '<div class="daypick" role="group" aria-label="Membership days">' + DAYS.map(function (d) {
           var on = st.days.indexOf(d) !== -1, lock = on && locked.indexOf(d) !== -1;
-          return '<button type="button" class="dayb" data-day="' + d + '" aria-pressed="' + on + '"' + (lock ? ' title="One of your classes meets on ' + DAY_FULL[d] + '"' : '') + '>' +
+          return '<button type="button" class="dayb" data-day="' + d + '" aria-pressed="' + on + '"' + (pkg ? ' disabled' : '') + (lock ? ' title="One of your classes meets on ' + DAY_FULL[d] + '"' : '') + '>' +
             '<span>' + d + '</span>' + (lock ? '<small>class</small>' : '') + '</button>';
         }).join('') + '</div>' +
         '<div class="choices cols-4 tiers">' + [2, 3, 4, 5].map(function (k) {
@@ -373,11 +369,12 @@
           var txt = money(disc) + '/mo' + (pct ? ' <s>' + money(base) + '</s>' : '');
           if (credit) txt += '<em>' + (disc * pay <= credit ? 'Covered by ESA' + (st.need ? ' + scholarship' : '') : money(Math.max(0, disc - credit / pay)) + '/mo with ' + (st.esa ? 'ESA' : 'scholarship')) + '</em>';
           var active = k === 2 ? n <= 2 : n === k;
-          return '<button type="button" class="choice" data-tier="' + k + '" aria-pressed="' + active + '"><strong>' + DAY_WORD[k] + '</strong><small>' + txt + '</small></button>';
+          return '<button type="button" class="choice" data-tier="' + k + '" aria-pressed="' + active + '"' + (pkg && k !== 5 ? ' disabled' : '') + '><strong>' + DAY_WORD[k] + '</strong><small>' + txt + '</small></button>';
         }).join('') + '</div>' +
-        '<p class="note">Your membership: <strong>' + membershipName(n) + ', ' + st.days.map(function (d) { return DAY_FULL[d]; }).join(', ') + '</strong>. Tap a day to add or remove it. Two-day memberships meet Monday through Thursday.</p>' +
+        (pkg ? '<p class="note"><strong>' + esc(school(st.school).name.replace(', through RadAcad', '')) + ' includes the full-week membership, Monday through Friday.</strong> To pick fewer days, choose “our own school” above.</p>'
+          : '<p class="note">Your membership: <strong>' + membershipName(n) + ', ' + st.days.map(function (d) { return DAY_FULL[d]; }).join(', ') + '</strong>. Tap a day to add or remove it. Two-day memberships meet Monday through Thursday.</p>') +
         (st.notice ? '<p class="rule" role="status">' + esc(st.notice) + '</p>' : '') +
-        '<p class="note">Just want to try it? Drop-in days are $230, and a new family’s first drop-in day is free.</p>';
+        (pkg ? '' : '<p class="note">Just want to try it? Drop-in days are $230, and a new family’s first drop-in day is free.</p>');
     }
     function toggle(id, on, a) {
       return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + (a.desc.indexOf('$') === -1 ? ' ' + money(a.price) + '/mo.' : '') + '</p></div>' +
