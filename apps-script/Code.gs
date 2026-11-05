@@ -26,7 +26,7 @@ var HEADERS = [
   'Submitted', 'Parent first', 'Parent last', 'Email', 'Phone',
   'Student', 'Grade', 'Start', 'Heard about us',
   'Coursework', 'Days asked for', 'Needs most', 'We suggested',
-  'Plan', 'Days', 'Line items', 'Monthly total', 'Class fees', 'ESA estimate',
+  'Plan', 'Days', 'Line items', 'Total', 'Class tuition', 'ESA estimate',
   'Notes', 'Page', 'Status'
 ];
 
@@ -56,7 +56,7 @@ function doPost(e) {
     }
 
     var items = plan.lines.map(function (l) { return clip_(l.label, 120) + ' ' + money_(l.amount); });
-    var total = Number(plan.monthly) || 0;
+    var total = Number(plan.total != null ? plan.total : plan.monthly) || 0;
 
     var lock = LockService.getScriptLock();
     lock.waitLock(10000);
@@ -90,7 +90,7 @@ function doPost(e) {
 
 function sendStaffEmail_(d, total) {
   var p = d.parent, s = d.student, a = d.answers || {};
-  var subject = 'New plan: ' + p.first + ' ' + p.last + ' (' + s.first + (s.grade ? ', grade ' + s.grade : '') + ') ' + money_(total) + '/mo';
+  var subject = 'New plan: ' + p.first + ' ' + p.last + ' (' + s.first + (s.grade ? ', grade ' + s.grade : '') + ') ' + money_(total) + unit_(d.plan);
   var rows = [
     ['Parent', p.first + ' ' + p.last],
     ['Email', p.email],
@@ -121,7 +121,7 @@ function sendStaffEmail_(d, total) {
     subject: subject,
     htmlBody: html,
     body: 'New plan from ' + p.first + ' ' + p.last + ' (' + p.email + ', ' + p.phone + '). ' +
-          'Plan: ' + d.plan.name + '. Estimated total: ' + money_(total) + '/mo.'
+          'Plan: ' + d.plan.name + '. Total: ' + money_(total) + unit_(d.plan) + '.'
   });
 }
 
@@ -146,23 +146,26 @@ function sendFamilyEmail_(d, total) {
     subject: 'Your RadAcad plan for ' + s.first,
     htmlBody: html,
     body: 'Hi ' + p.first + ', thanks for building a plan for ' + s.first + '. ' +
-          'Your plan: ' + d.plan.name + '. Estimated total: ' + money_(total) + '/mo. Book your intro call: ' + CONFIG.BOOKING_URL
+          'Your plan: ' + d.plan.name + '. Total: ' + money_(total) + unit_(d.plan) + '. Book your intro call: ' + CONFIG.BOOKING_URL
   });
 }
 
+function unit_(plan) { return plan && plan.billing === 'upfront' ? ' paid up front' : '/mo'; }
+
 function planTable_(plan, total) {
-  var rows = (plan.lines || []).map(function (l) { return [l.label, l.amount]; });
+  var rows = (plan.lines || []).map(function (l) { return [l.label, l.amount, l.unit == null ? '/mo' : l.unit]; });
   return '<table cellpadding="8" style="border-collapse:collapse;width:100%;max-width:520px;border:1px solid #ddd">' +
     rows.map(function (r) {
       return '<tr><td style="border-bottom:1px solid #eee">' + esc_(r[0]) + '</td>' +
-             '<td style="border-bottom:1px solid #eee;text-align:right;white-space:nowrap">' + money_(r[1]) + '/mo</td></tr>';
+             '<td style="border-bottom:1px solid #eee;text-align:right;white-space:nowrap">' + money_(r[1]) + esc_(r[2]) + '</td></tr>';
     }).join('') +
-    '<tr><td style="font-weight:bold">Estimated monthly total</td>' +
-    '<td style="font-weight:bold;text-align:right;color:#259991;white-space:nowrap">' + money_(total) + '/mo</td></tr>' +
+    '<tr><td style="font-weight:bold">' + esc_(plan.totalLabel || 'Monthly total') + '</td>' +
+    '<td style="font-weight:bold;text-align:right;color:#259991;white-space:nowrap">' + money_(total) + (plan.billing === 'upfront' ? '' : '/mo') + '</td></tr>' +
     '</table>' +
-    (plan.classFees ? '<p style="margin:8px 0 0;font-size:14px">Plus small group class fees: ' + esc_(plan.classFees) + ', billed at enrollment.</p>' : '') +
-    (plan.esa ? '<p style="margin:4px 0 0;font-size:14px;color:#1b6f69">' + esc_(plan.esa) + ' (estimate).</p>' : '') +
-    (plan.days && plan.days.length ? '<p style="margin:4px 0 0;font-size:14px;color:#555">Days: ' + esc_(plan.days.join(', ')) + '</p>' : '');
+    (plan.classFees ? '<p style="margin:8px 0 0;font-size:14px">Plus small group class tuition: ' + esc_(plan.classFees) + ', billed at enrollment.</p>' : '') +
+    (plan.esa ? '<p style="margin:4px 0 0;font-size:14px;color:#1b6f69">' + esc_(plan.esa) + '.</p>' : '') +
+    (plan.days && plan.days.length ? '<p style="margin:4px 0 0;font-size:14px;color:#555">Days: ' + esc_(plan.days.join(', ')) + '</p>' : '') +
+    '<p style="margin:8px 0 0;font-size:12px;color:#666">Final plan and pricing to be confirmed when your family meets with Radical Minds Academy.</p>';
 }
 
 /* ---------- helpers ---------- */

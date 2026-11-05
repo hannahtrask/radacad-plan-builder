@@ -34,8 +34,9 @@ squarespace/
 Squarespace's GA4 integration loads `gtag`, so these events fire automatically: `plan_builder_start` (first choice made), `plan_builder_school` (which school option), `plan_builder_submit` (`value` = monthly total).
 
 ## How it's laid out
-- **Left, seven sections:** 1) Grade (5–12; grade sets the daily routine, small group classes show for 6–8 only, close support for 9–12 only) 2) Example plans 3) Where does school happen? (with "What is ICL Academy?" / "What is Aeon School?" explainers) 4) Which days? (tap individual days; tier buttons fill a default pattern) 5) Add-ons, small group classes, ICL à la carte 6) Start date 7) Send.
+- **Left, six sections:** 1) Grade (5–12, with a "younger student" link to /getstarted) 2) Start from an example, or build your own (Build your own is the default; examples include the ICL live, ICL self-paced, and Aeon packages, with the ICL/Aeon explainers) 3) Which days? (day picker + two cards: Full week as the standard plan and Two-day; "Need a third or fourth day? Add $300 a day.") 4) Add-ons, small group classes, ICL à la carte 5) Start date 6) Send.
 - **Right:** a timed week (8:00–3:45) plus the price. On phones, a black bar shows the total and "See the week" opens it full screen.
+- Small group classes that meet at the same time as one already on the plan are greyed out ("Meets at the same time as Spanish"). Outside grades 6–8 the block shows a one-line explanation instead of disappearing.
 
 ## The week planner
 - Every membership day: **Goals** 8:15–8:30, **Lunch** 12:00–12:30, **Final check-in** 3:15–3:30.
@@ -44,13 +45,12 @@ Squarespace's GA4 integration loads `gtag`, so these events fire automatically: 
 - **Estimated** (dashed, striped): 1:1 coaching (1 hr per weekly hour), single-subject classes (three 1-hr sessions each), ICL à la carte (45 min live for live courses + 3.5 hrs independent work per course), weekly check-in session (30 min), and full-time ICL/Aeon (classes mornings, coursework afternoons).
 - Estimated items are spread across membership days and through the day (`PREF` in `schedule()` in `embed.js`). Anything that doesn't fit is listed under the grid.
 
-## Pricing rules
-- Membership by days picked: 1–2 days $350, 3 days $650, 4 days $950, 5 days $1,200. Two-day plans are Mon–Thu. Picking a class adds its days; removing a day removes classes that meet that day (with a note).
-- ICL packages ($2,875 live, $2,425 self-paced) and Aeon ($1,200/mo + $10,500/semester) include the full week.
-- Income-based 10%/20% and JHSC merit 25%/50% apply to the membership portion only (capped at 100% combined).
-- Need-based scholarship: slider, None or $2,000–$15,000 a year, applied like ESA as a yearly credit.
-- **Wyoming ESA** ($7,000/yr) is on by default for fall and January. Headline price = monthly − (ESA + need-based) ÷ payments (9 fall, 5 January), never below $0; leftover credit goes to semester fees.
-- Fine print: `settings.finePrint`.
+## Pricing rules (Garrett, Nov 4)
+- **Monthly plans** (no ICL or Aeon): membership by days picked (1–2 days $350, 3 $650, 4 $950, 5 $1,200; two-day plans are Mon–Thu), add-ons monthly, small group classes billed per semester ($1,250 fall, $1,800 spring). Headline = per month after ESA and need-based scholarship.
+- **Up-front plans** (any ICL package, Aeon, or à la carte ICL course): one yearly total, paid before the student starts. Packages: ICL live $20,700, ICL self-paced $17,550, Aeon $27,300 (each includes the full-week membership). À la carte: $2,250 live / $1,700 self-paced per course, plus the year's membership. January: ICL is one semester at half price ($10,350 / $8,775; courses $1,125 / $850), Aeon is $22,500. Add-ons are shown as yearly totals. January deposits $900 live / $600 self-paced.
+- Discounts: income-based 10%/20% and JHSC merit 25%/50% apply to the membership portion only (the $1,200/mo inside packages). Need-based slider $2,000–$15,000/yr and Wyoming ESA $7,000/yr come off the whole plan.
+- Fine print switches to "Your membership runs for the full year of ICL/Aeon enrollment" plus the ICL or Aeon tuition terms whenever ICL or Aeon is on the plan.
+- The word "fees" isn't used anywhere; it's "tuition."
 
 ## Updating prices, classes, and courses (billed hourly)
 Edit `public/plans.json`, then `git add . && git commit -m "Update" && git push`.

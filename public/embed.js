@@ -80,7 +80,7 @@
     var BLANK = { school: 'own', days: ['Mon', 'Wed'], checkin: false, close: false, coach: 0, single: 0, classes: [], icl: [] };
     var st = Object.assign(JSON.parse(JSON.stringify(BLANK)), {
       grade: null, start: 'fall', esa: true, aid: 0, merit: 0, need: 0,
-      preset: null, notice: '', dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
+      path: 'own', preset: null, notice: '', dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
     });
 
     /* ---------- rules ---------- */
@@ -137,42 +137,60 @@
     function membershipName(n) { return n >= 5 ? 'Full-week membership' : n <= 2 ? 'Two-day membership' : DAY_WORD[n].replace(' days', '-day') + ' membership'; }
 
     /* ---------- pricing ---------- */
+    // Plans with ICL or Aeon (a package, or any à la carte ICL course) are one yearly price, paid up front.
+    // Everything else is monthly, with small group classes billed by the semester.
+    function isUpfront() { return isPkg() || st.icl.length > 0; }
+    function schoolWord() { return st.school === 'aeon' ? 'Aeon' : 'ICL'; }
+    function iclPrice(c, jan) { return c.live ? (jan ? IC.liveJan : IC.live) : (jan ? IC.asyncJan : IC.async); }
     function compute() {
       var sc = school(st.school), start = startOf(st.start), pkg = isPkg(), n = st.days.length;
-      var lines = [], monthly = 0;
-      function add(label, amount, k) { lines.push({ label: label, amount: amount, cls: k || '' }); monthly += amount; }
+      var P = start.payments, jan = st.start === 'jan', fall = !jan, up = isUpfront();
+      var period = jan ? 'spring' : 'school year';
+      var memMonthly = pkg ? sc.membershipMonthly : membershipPrice(n);
+      var pct = Math.min(st.aid + st.merit, 100);
+      var credits = (st.esa ? S.esaAnnual : 0) + st.need;
+      var groupYear = st.classes.length * (fall ? G.fallFee + G.springFee : G.springFee);
+      var groupSem = st.classes.length * (fall ? G.fallFee : G.springFee);
 
-      var memBase = pkg ? sc.membershipPart : membershipPrice(n);
-      if (pkg) add(st.school === 'aeon' ? 'Full-week membership (with Aeon)' : sc.name.replace(', through RadAcad', '').replace('ICL Academy, ', 'Full week + ICL Academy, '), sc.monthly);
-      else add(membershipName(n) + ' (' + st.days.join(', ') + ')', memBase);
-      if (st.aid) add('Income-based discount on membership (' + st.aid + '%)', -memBase * st.aid / 100, 'sub');
-      if (st.merit) add('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memBase * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
+      if (up) {
+        var lines = [], sum = 0;
+        function addY(label, amount, k) { lines.push({ label: label, amount: amount, cls: k || '', unit: '' }); sum += amount; }
+        if (pkg) addY(sc.name + (jan ? ', spring semester' : ', full year') + ' (includes full-week membership)', jan ? sc.janPrice : sc.yearly);
+        else addY(membershipName(n) + ' for the ' + period + ' (' + st.days.join(', ') + ')', memMonthly * P);
+        st.icl.forEach(function (c) { addY('ICL ' + c.n + (c.live ? ', live' : ', self-paced') + (jan ? ' (spring)' : ' (full year)'), iclPrice(c, jan)); });
+        if (st.checkin) addY(A.checkin.name + ' for the ' + period, A.checkin.price * P);
+        if (st.close) addY(A.close.name + ' for the ' + period, A.close.price * P);
+        if (st.coach) addY(st.coach + ' hr/week of 1:1 coaching for the ' + period, A.coaching.price * st.coach * P);
+        if (st.single) addY(st.single + ' single-subject class' + (st.single > 1 ? 'es' : '') + ' for the ' + period, A.single.price * st.single * P);
+        st.classes.forEach(function (id) { addY(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), fall ? G.fallFee + G.springFee : G.springFee); });
+        var gross = sum;
+        if (st.aid) addY('Income-based discount on membership (' + st.aid + '%)', -memMonthly * P * st.aid / 100, 'sub');
+        if (st.merit) addY('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * P * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
+        var afterDisc = sum;
+        var esaAmt = st.esa ? Math.min(S.esaAnnual, Math.max(0, afterDisc)) : 0;
+        if (esaAmt) addY('Wyoming ESA', -esaAmt, 'sub');
+        var needAmt = st.need ? Math.min(st.need, Math.max(0, afterDisc - esaAmt)) : 0;
+        if (st.need) addY('Need-based scholarship, if awarded', -needAmt, 'sub');
+        return { up: true, lines: lines, total: Math.max(0, sum), gross: gross, beforeCredits: afterDisc, credits: credits, period: period, jan: jan, payments: P, memMonthly: memMonthly };
+      }
+
+      var mlines = [], monthly = 0;
+      function add(label, amount, k) { mlines.push({ label: label, amount: amount, cls: k || '', unit: '/mo' }); monthly += amount; }
+      add(membershipName(n) + ' (' + st.days.join(', ') + ')', memMonthly);
+      if (st.aid) add('Income-based discount on membership (' + st.aid + '%)', -memMonthly * st.aid / 100, 'sub');
+      if (st.merit) add('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
       if (st.checkin) add(A.checkin.name, A.checkin.price);
       if (st.close) add(A.close.name, A.close.price);
       if (st.coach) add(st.coach + ' hr/week of 1:1 coaching', A.coaching.price * st.coach);
       if (st.single) add(st.single + ' single-subject class' + (st.single > 1 ? 'es' : ''), A.single.price * st.single);
-      st.icl.forEach(function (c) { add('ICL ' + c.n + (c.live ? ' (live)' : ' (self-paced)'), c.live ? IC.live : IC.async); });
-
-      var sem = [], semPer = 0, yearFees = 0, fall = st.start === 'fall';
-      if (st.classes.length) {
-        var per = fall ? G.fallFee : G.springFee;
-        st.classes.forEach(function (id) { sem.push({ label: cls(id).name + (fall ? ' (fall)' : ' (spring)'), text: money(per) + ' per semester' }); });
-        semPer += per * st.classes.length;
-        yearFees += st.classes.length * (fall ? G.fallFee + G.springFee : G.springFee);
-      }
-      if (st.school === 'aeon') {
-        sem.push({ label: 'Aeon School tuition, paid in advance', text: money(sc.semesterFee) + ' per semester' });
-        semPer += sc.semesterFee;
-        yearFees += sc.semesterFee * (fall ? 2 : 1);
-      }
-      var yearly = monthly * start.payments + yearFees;
-      var credits = (st.esa ? S.esaAnnual : 0) + st.need;
+      var sem = st.classes.map(function (id) { return { label: cls(id).name + (fall ? ' (fall)' : ' (spring)'), text: money(fall ? G.fallFee : G.springFee) + ' per semester' }; });
+      var yearly = monthly * P + groupYear;
       var creditTotal = Math.min(credits, yearly);
-      var monthlyAfter = Math.max(0, monthly - credits / start.payments);
-      var leftover = creditTotal - (monthly - monthlyAfter) * start.payments;
-      var feesAfter = Math.max(0, yearFees - leftover);
-      return { lines: lines, sem: sem, semPer: semPer, monthly: monthly, monthlyAfter: monthlyAfter, yearFees: yearFees, feesAfter: feesAfter,
-        yearly: yearly, credits: credits, creditTotal: creditTotal, after: Math.max(0, yearly - creditTotal), payments: start.payments, memBase: memBase };
+      var monthlyAfter = Math.max(0, monthly - credits / P);
+      var leftover = creditTotal - (monthly - monthlyAfter) * P;
+      var tuitionAfter = Math.max(0, groupYear - leftover);
+      return { up: false, lines: mlines, sem: sem, semPer: groupSem, monthly: monthly, monthlyAfter: monthlyAfter, groupYear: groupYear, tuitionAfter: tuitionAfter,
+        yearly: yearly, credits: credits, creditTotal: creditTotal, after: Math.max(0, yearly - creditTotal), payments: P, period: period, jan: jan, memMonthly: memMonthly };
     }
 
     /* ---------- the week: timed schedule ---------- */
@@ -258,34 +276,27 @@
         '<div class="builder">' +
           '<section class="step" aria-labelledby="h-grade"><h3 id="h-grade"><span class="num">1</span>What grade is your student in?</h3>' +
             '<p class="hint">RadAcad serves grades 5–12. Your student’s grade shapes their day and which classes they can join.</p><div id="sec-grade"></div></section>' +
-          '<div id="rest">' +
-          '<section class="step" aria-labelledby="h-presets"><h3 id="h-presets"><span class="num">2</span>Start from an example plan</h3>' +
-            '<p class="hint">Pick the one closest to your family, then change anything below. Prices include Wyoming ESA.</p>' +
-            '<div class="presets" id="sec-presets"></div></section>' +
-          '<section class="step" aria-labelledby="h-school"><h3 id="h-school"><span class="num">3</span>Where does school happen?</h3>' +
-            '<p class="hint">RadAcad is the place your student does school, with a coach, goals every morning, and a note home every afternoon. The school itself can be one you already have or one of our partner schools.</p>' +
-            '<div class="choices" id="sec-school"></div>' +
-            '<div class="explain">' +
-              '<details><summary>' + esc(EX.icl.title) + '</summary><p>' + esc(EX.icl.body) + '</p></details>' +
-              (school('aeon').hidden ? '' : '<details><summary>' + esc(EX.aeon.title) + '</summary><p>' + esc(EX.aeon.body) + '</p></details>') +
+          '<section class="step" aria-labelledby="h-path"><h3 id="h-path"><span class="num">2</span>Start from an example, or build your own</h3>' +
+            '<div class="path" role="group" aria-label="How to start">' +
+              '<button type="button" class="path-b" data-path="own"><strong>Build your own</strong><small>Pick days and add what your student needs</small></button>' +
+              '<button type="button" class="path-b" data-path="example"><strong>Start from an example</strong><small>Including our partner school packages</small></button>' +
             '</div>' +
-            '<p class="note">Already enrolled somewhere? Keep your enrollment and pick “our own school.”</p></section>' +
-          '<section class="step" aria-labelledby="h-days"><h3 id="h-days"><span class="num">4</span>Which days?</h3>' +
+            '<div id="sec-path"></div></section>' +
+          '<section class="step" aria-labelledby="h-days"><h3 id="h-days"><span class="num">3</span>Which days?</h3>' +
             '<p class="hint">' + esc(M.dayNote) + '</p><div id="sec-days"></div></section>' +
-          '<section class="step" aria-labelledby="h-add"><h3 id="h-add"><span class="num">5</span>Add what your student needs</h3>' +
-            '<p class="hint">Everything below is month to month except classes, which run by the semester. ' + esc(G.scheduleNote) + '</p>' +
+          '<section class="step" aria-labelledby="h-add"><h3 id="h-add"><span class="num">4</span>Add what your student needs</h3>' +
+            '<p class="hint">' + esc(data.addHint) + ' ' + esc(G.scheduleNote) + '</p>' +
             '<div id="sec-addons"></div>' +
-            '<div class="addon block" id="sec-classes-wrap"><p class="addon-title">Small group classes</p><p class="addon-desc">' + esc(G.desc) + '</p><div class="classes" id="sec-classes"></div></div>' +
+            '<div class="addon block" id="sec-classes-wrap"><p class="addon-title">Small group classes</p><div id="sec-classes-body"></div></div>' +
             '<div class="addon block" id="sec-icl-wrap"><p class="addon-title">ICL Academy courses, à la carte</p><p class="addon-desc">' + esc(IC.desc) + '</p>' +
               '<details class="explain-inline"><summary>' + esc(EX.icl.title) + '</summary><p>' + esc(EX.icl.body) + '</p></details>' +
               '<label class="sr" for="rma-icl-q">Search ICL courses</label>' +
               '<input class="search" id="rma-icl-q" type="search" placeholder="Search ICL courses (Algebra, English 9, AP Biology, Spanish…)" autocomplete="off">' +
               '<div class="pills" id="sec-depts"></div><div class="icl-list" id="sec-icl-list"></div><div class="picked" id="sec-icl-picked"></div></div>' +
           '</section>' +
-          '<section class="step" aria-labelledby="h-start"><h3 id="h-start"><span class="num">6</span>When would you start?</h3><div id="sec-start"></div></section>' +
-          '<section class="step" id="rma-send" aria-labelledby="h-send"><h3 id="h-send" tabindex="-1"><span class="num">7</span>Send this plan and book a call</h3>' +
+          '<section class="step" aria-labelledby="h-start"><h3 id="h-start"><span class="num">5</span>When would you start?</h3><div id="sec-start"></div></section>' +
+          '<section class="step" id="rma-send" aria-labelledby="h-send"><h3 id="h-send" tabindex="-1"><span class="num">6</span>Send this plan and book a call</h3>' +
             '<div id="sec-form"></div></section>' +
-          '</div>' +
         '</div>' +
         '<aside class="summary" aria-label="Your student’s week and price">' +
           '<div class="sum-head"><h3>Your student’s week</h3><button type="button" class="sheet-close">Close</button></div>' +
@@ -293,7 +304,7 @@
           '<div id="sum-legend"></div>' +
           '<div class="disc" id="sum-disc">' +
             '<p class="disc-h">Before you look at the price, check what applies to you</p>' +
-            '<label class="toggle"><input type="checkbox" id="rma-esa"><span><b>Wyoming ESA</b>: $7,000 a year for any student not in public school. Every family who has applied has been approved.</span></label>' +
+            '<label class="toggle"><input type="checkbox" id="rma-esa"><span><b>Wyoming ESA</b>: $7,000 a year for any student not in public school. Every family who has applied has been approved. ' + esc(data.esaQuarterly) + '</span></label>' +
             '<label class="toggle"><input type="checkbox" id="rma-aid10" data-aid="10"><span><b>10% off membership</b>: household income is 80–120% of the Teton County median.</span></label>' +
             '<label class="toggle"><input type="checkbox" id="rma-aid20" data-aid="20"><span><b>20% off membership</b>: household income is below 80% of the county median.</span></label>' +
             '<div class="disc-group"><p class="dg-h"><b>' + esc(SCH.merit.title) + '</b>: ' + esc(SCH.merit.desc) + '</p>' +
@@ -315,16 +326,23 @@
         '<button type="button" class="mb-week">See the week</button></div>';
 
     var $ = function (s) { return app.querySelector(s); };
+    function priceText(r) {
+      if (r.up) return money(r.total) + ' for the ' + r.period;
+      if (r.monthlyAfter === 0 && !r.tuitionAfter && r.credits) return 'Fully covered';
+      return money(r.monthlyAfter) + '/mo' + (r.groupYear && r.tuitionAfter ? ' + ' + money(r.tuitionAfter) + ' class tuition' : '');
+    }
 
     /* ---------- left renderers ---------- */
     function renderGrade() {
+      var Y = data.youngerNote;
       $('#sec-grade').innerHTML = '<div class="choices grades">' + S.grades.map(function (g) {
         return '<button type="button" class="choice" data-grade="' + g + '" aria-pressed="' + (st.grade === +g) + '"><strong>' + g + '</strong></button>';
       }).join('') + '</div>' +
+        '<p class="note">' + esc(Y.text) + ' <a href="' + esc(Y.href) + '">' + esc(Y.link) + '</a>.</p>' +
         (st.grade !== null ? '<p class="note">' + (isMS()
           ? 'Middle schoolers set goals with a coach each morning, get a check-in at every transition, and finish with a final check-in.'
           : 'High schoolers set goals with a coach each morning, get a midday check-in, and finish with a final check-in. Close support adds hourly check-ins.') +
-          (groupsOK() ? ' Small group classes are open to grades 6–8.' : '') + '</p>' : '');
+          (groupsOK() ? ' Small group classes are open to grades ' + G.minGrade + '–' + G.maxGrade + '.' : '') + '</p>' : '');
     }
     function presetOK(p) { return !p.grades || st.grade === null || (st.grade >= p.grades[0] && st.grade <= p.grades[1]); }
     function applyPreset(id, quiet) {
@@ -342,41 +360,56 @@
       Object.keys(keep).forEach(function (k) { st[k] = keep[k]; });
       return r;
     }
-    function renderPresets() {
-      $('#sec-presets').innerHTML = data.presets.filter(function (p) { return (!p.set.school || !school(p.set.school).hidden) && presetOK(p); }).map(function (p) {
-        var r = priceFor(p.id), on = st.preset === p.id;
-        var fees = r.yearFees ? (r.feesAfter === 0 ? '' : ' + ' + money(r.feesAfter) + ' fees') : '';
-        return '<button type="button" class="preset" data-preset="' + p.id + '" aria-pressed="' + on + '">' +
-          '<strong>' + esc(p.name) + '</strong><small>' + esc(p.built) + '</small>' +
-          '<span class="pp">' + (r.monthlyAfter === 0 && !r.feesAfter && r.credits ? 'Fully covered' : money(r.monthlyAfter) + '/mo' + fees) + '</span></button>';
-      }).join('');
+    function presetCard(p) {
+      var r = priceFor(p.id), on = st.preset === p.id, sc = p.set.school && school(p.set.school);
+      var jan = st.start === 'jan';
+      return '<button type="button" class="preset' + (sc ? ' pkg' : '') + '" data-preset="' + p.id + '" aria-pressed="' + on + '">' +
+        '<strong>' + esc(p.name) + '</strong><small>' + esc(p.built) + '</small>' +
+        (sc ? '<span class="pp">' + money(jan ? sc.janPrice : sc.yearly) + ' for the ' + (jan ? 'spring' : 'year') + ', paid before the student starts</span>' +
+              (r.credits ? '<span class="pp2">' + money(r.total) + ' after your credits and discounts</span>' : '')
+            : '<span class="pp">' + priceText(r) + '</span>') + '</button>';
     }
-    function renderSchool() {
-      $('#sec-school').innerHTML = schools.map(function (s) {
-        var on = st.school === s.id;
-        return '<button type="button" class="choice" data-school="' + s.id + '" aria-pressed="' + on + '">' +
-          '<span class="price">' + esc(s.priceLabel || money(s.monthly) + '/mo') + '</span>' +
-          '<strong>' + esc(s.name) + '</strong><small>' + esc(s.desc) + '</small></button>';
-      }).join('');
+    function renderPath() {
+      app.querySelectorAll('[data-path]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.path === st.path)); });
+      if (st.path !== 'example') {
+        $('#sec-path').innerHTML = '<p class="note">Pick your days below, then add classes, 1:1 time, or ICL courses. You can switch to an example any time.</p>';
+        return;
+      }
+      var list = data.presets.filter(function (p) { return (!p.set.school || !school(p.set.school).hidden) && presetOK(p); });
+      var plans = list.filter(function (p) { return !p.set.school; }), pkgs = list.filter(function (p) { return p.set.school; });
+      $('#sec-path').innerHTML =
+        '<p class="hint">Pick the one closest to your family, then change anything below. Monthly prices include Wyoming ESA.</p>' +
+        '<div class="presets">' + plans.map(presetCard).join('') + '</div>' +
+        (pkgs.length ? '<p class="group-h">Partner school packages</p>' +
+          '<p class="hint">Full-time online school with a full-week RadAcad membership, one price for the year.</p>' +
+          '<div class="presets">' + pkgs.map(presetCard).join('') + '</div>' +
+          '<div class="explain">' +
+            '<details><summary>' + esc(EX.icl.title) + '</summary><p>' + esc(EX.icl.body) + '</p></details>' +
+            (school('aeon').hidden ? '' : '<details><summary>' + esc(EX.aeon.title) + '</summary><p>' + esc(EX.aeon.body) + '</p></details>') +
+          '</div>' : '');
     }
     function renderDays() {
       var pkg = isPkg(), n = st.days.length, locked = classDays();
       var pct = Math.min(100, st.aid + st.merit) / 100, pay = startOf(st.start).payments, credit = (st.esa ? S.esaAnnual : 0) + st.need;
+      function card(k, label, tag) {
+        var base = M.prices[k], disc = Math.round(base * (1 - pct));
+        var txt = money(disc) + '/mo' + (pct ? ' <s>' + money(base) + '</s>' : '');
+        if (credit && !isUpfront()) txt += '<em>' + (disc * pay <= credit ? 'Covered by ESA' + (st.need ? ' + scholarship' : '') : money(Math.max(0, disc - credit / pay)) + '/mo with ' + (st.esa ? 'ESA' : 'scholarship')) + '</em>';
+        var active = k === 2 ? n <= 2 : n === k;
+        return '<button type="button" class="choice tier' + (pkg ? ' locked' : '') + '" data-tier="' + k + '" aria-pressed="' + active + '">' +
+          (tag ? '<span class="tag-std">' + tag + '</span>' : '') + '<strong>' + label + '</strong><small>' + txt + '</small></button>';
+      }
       $('#sec-days').innerHTML =
-        '<div class="daypick" role="group" aria-label="Membership days">' + DAYS.map(function (d) {
+        '<div class="daypick' + (pkg ? ' locked' : '') + '" role="group" aria-label="Membership days">' + DAYS.map(function (d) {
           var on = st.days.indexOf(d) !== -1, lock = on && locked.indexOf(d) !== -1;
-          return '<button type="button" class="dayb" data-day="' + d + '" aria-pressed="' + on + '"' + (pkg ? ' disabled' : '') + (lock ? ' title="One of your classes meets on ' + DAY_FULL[d] + '"' : '') + '>' +
+          return '<button type="button" class="dayb" data-day="' + d + '" aria-pressed="' + on + '"' + (lock ? ' title="One of your classes meets on ' + DAY_FULL[d] + '"' : '') + '>' +
             '<span>' + d + '</span>' + (lock ? '<small>class</small>' : '') + '</button>';
         }).join('') + '</div>' +
-        '<div class="choices cols-4 tiers">' + [2, 3, 4, 5].map(function (k) {
-          var base = M.prices[k], disc = Math.round(base * (1 - pct));
-          var txt = money(disc) + '/mo' + (pct ? ' <s>' + money(base) + '</s>' : '');
-          if (credit) txt += '<em>' + (disc * pay <= credit ? 'Covered by ESA' + (st.need ? ' + scholarship' : '') : money(Math.max(0, disc - credit / pay)) + '/mo with ' + (st.esa ? 'ESA' : 'scholarship')) + '</em>';
-          var active = k === 2 ? n <= 2 : n === k;
-          return '<button type="button" class="choice" data-tier="' + k + '" aria-pressed="' + active + '"' + (pkg && k !== 5 ? ' disabled' : '') + '><strong>' + DAY_WORD[k] + '</strong><small>' + txt + '</small></button>';
-        }).join('') + '</div>' +
-        (pkg ? '<p class="note"><strong>' + esc(school(st.school).name.replace(', through RadAcad', '')) + ' includes the full-week membership, Monday through Friday.</strong> To pick fewer days, choose “our own school” above.</p>'
-          : '<p class="note">Your membership: <strong>' + membershipName(n) + ', ' + st.days.map(function (d) { return DAY_FULL[d]; }).join(', ') + '</strong>. Tap a day to add or remove it. Two-day memberships meet Monday through Thursday.</p>') +
+        '<div class="choices cols-2 tiers">' + card(5, 'Full-week membership', 'Standard plan') + card(2, 'Two-day membership', '') + '</div>' +
+        '<p class="extra-days">Need a third or fourth day? Add ' + money(M.prices[3] - M.prices[2]) + ' a day.' +
+          (!pkg && (n === 3 || n === 4) ? ' <strong>Your plan: ' + membershipName(n).toLowerCase() + ', ' + money(membershipPrice(n)) + '/mo.</strong>' : '') + '</p>' +
+        (pkg ? '<p class="note"><strong>' + esc(school(st.school).name) + ' includes the full-week membership, Monday through Friday.</strong></p>'
+          : '<p class="note">Your days: <strong>' + st.days.map(function (d) { return DAY_FULL[d]; }).join(', ') + '</strong>. Tap a day to add or remove it. Two-day memberships meet Monday through Thursday.</p>') +
         (st.notice ? '<p class="rule" role="status">' + esc(st.notice) + '</p>' : '') +
         (pkg ? '' : '<p class="note">Just want to try it? Drop-in days are $230, and a new family’s first drop-in day is free.</p>');
     }
@@ -391,31 +424,46 @@
           '<output aria-live="polite">' + value + '</output>' +
           '<button type="button" data-inc="' + id + '" aria-label="More"' + (value >= max ? ' disabled' : '') + '>+</button></div></div>';
     }
+    function clash(c) {
+      // a selected class that meets at the same time on the same day
+      for (var i = 0; i < st.classes.length; i++) {
+        var o = cls(st.classes[i]); if (o.id === c.id) continue;
+        var hit = c.sessions.some(function (x) { return o.sessions.some(function (y) { return x[0] === y[0] && toMin(x[1]) < toMin(y[2]) && toMin(y[1]) < toMin(x[2]); }); });
+        if (hit) return o;
+      }
+      return null;
+    }
     function renderAddons() {
       $('#sec-addons').innerHTML =
         toggle('checkin', st.checkin, A.checkin) +
         (closeOK() ? toggle('close', st.close, A.close) : '') +
         stepper('coach', st.coach, A.coaching.max, A.coaching, 'Weekly hours of 1:1 coaching') +
         stepper('single', st.single, A.single.max, A.single, 'Single-subject classes');
-      $('#sec-classes-wrap').hidden = !groupsOK();
+      var body = $('#sec-classes-body');
+      if (!groupsOK()) {
+        body.innerHTML = '<p class="addon-desc">Small group classes are for grades ' + G.minGrade + '–' + G.maxGrade + '.' +
+          (st.grade > G.maxGrade ? ' High schoolers can add ICL courses or 1:1 time below.' : '') + '</p>';
+        return;
+      }
       var cur = st.days.length, curPrice = membershipPrice(cur);
-      $('#sec-classes').innerHTML = G.classes.map(function (c) {
-        var on = st.classes.indexOf(c.id) !== -1;
+      body.innerHTML = '<p class="addon-desc">Grades ' + G.minGrade + '–' + G.maxGrade + '. ' + esc(G.desc) + '</p><div class="classes">' + G.classes.map(function (c) {
+        var on = st.classes.indexOf(c.id) !== -1, hit = on ? null : clash(c);
         var missing = c.days.filter(function (d) { return st.days.indexOf(d) === -1; });
         var flag = '';
         if (on) flag = '<em class="fits">On your plan</em>';
+        else if (hit) flag = '<em class="clash">Meets at the same time as ' + esc(hit.short) + '</em>';
         else if (!missing.length) flag = '<em class="fits">Fits your days</em>';
         else {
           var bump = membershipPrice(Math.min(5, cur + missing.length)) - curPrice;
           flag = '<em class="adds">Adds ' + missing.map(function (d) { return DAY_FULL[d]; }).join(' and ') + ' to your membership' +
-            (bump > 0 ? ' (+' + money(bump) + '/mo)' : '') + '</em>';
+            (bump > 0 && !isPkg() ? ' (+' + money(bump) + '/mo)' : '') + '</em>';
         }
-        return '<label class="cls' + (!on && missing.length ? ' needs' : '') + '"><input type="checkbox" id="rma-cls-' + c.id + '" data-cls="' + c.id + '"' + (on ? ' checked' : '') + '>' +
+        return '<label class="cls' + (hit ? ' off' : !on && missing.length ? ' needs' : '') + '"><input type="checkbox" id="rma-cls-' + c.id + '" data-cls="' + c.id + '"' + (on ? ' checked' : '') + (hit ? ' disabled' : '') + '>' +
           '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + ', with ' + esc(c.who) + '</small>' + flag + '</span></label>';
-      }).join('') + (st.clsNotice && st.notice ? '<p class="rule cls-note" role="status">' + esc(st.notice) + '</p>' : '');
+      }).join('') + '</div>' + (st.clsNotice && st.notice ? '<p class="rule cls-note" role="status">' + esc(st.notice) + '</p>' : '');
     }
     function renderIcl() {
-      var wrap = $('#sec-icl-wrap');
+      var wrap = $('#sec-icl-wrap'), jan = st.start === 'jan';
       wrap.hidden = isPkg();
       if (isPkg()) return;
       var pool = data.iclCourses.filter(levelOK);
@@ -430,20 +478,22 @@
         return '<div class="icl-row"><span>' + esc(c.n) + '<small>' + (c.ms ? 'middle school' : 'high school') + '</small></span>' +
           '<button type="button" data-add-icl="' + esc(c.n) + '"' + (on || full ? ' disabled' : '') + '>' + (on ? 'Added' : 'Add') + '</button></div>';
       }).join('') : '<div class="icl-row"><span>No courses match. Try a shorter search.</span></div>';
+      var unit = jan ? ' for spring' : '/year';
       $('#sec-icl-picked').innerHTML =
         (st.grade !== null ? '<p class="note level-note">Showing ' + (st.grade <= 8 ? 'middle school' : 'high school') + ' courses for grade ' + st.grade + '.</p>' : '') +
         (st.iclDropped && st.iclDropped.length ? '<p class="rule" role="status">We took ' + esc(st.iclDropped.join(' and ')) + ' off the plan, since ' + (st.iclDropped.length > 1 ? 'they’re ' : 'it’s a ') + (st.grade <= 8 ? 'high school' : 'middle school') + (st.iclDropped.length > 1 ? ' courses.' : ' course.') + '</p>' : '') +
         (full ? '<p class="note">That’s the limit of three courses.</p>' : '') + st.icl.map(function (c, i) {
         return '<div class="picked-row"><span>' + esc(c.n) + '</span><span class="fmt">' +
-          '<button type="button" data-fmt="' + i + '" data-live="1" aria-pressed="' + c.live + '">Live ' + money(IC.live) + '</button>' +
-          '<button type="button" data-fmt="' + i + '" data-live="0" aria-pressed="' + !c.live + '">Self-paced ' + money(IC.async) + '</button>' +
+          '<button type="button" data-fmt="' + i + '" data-live="1" aria-pressed="' + c.live + '">Live ' + money(jan ? IC.liveJan : IC.live) + unit + '</button>' +
+          '<button type="button" data-fmt="' + i + '" data-live="0" aria-pressed="' + !c.live + '">Self-paced ' + money(jan ? IC.asyncJan : IC.async) + unit + '</button>' +
           '<button type="button" class="rm" data-rm-icl="' + i + '" aria-label="Remove ' + esc(c.n) + '">×</button></span></div>';
-      }).join('') + (st.icl.length ? '<p class="note">Each ICL course is about 45 minutes of live class a week (live courses) plus 3 to 4 hours of independent work, shown as estimates in the week.</p>' : '');
+      }).join('') + (st.icl.length ? '<p class="note">ICL courses are paid in full before the student starts, together with the ' + (jan ? 'spring' : 'year') + '’s membership. Each course is about 45 minutes of live class a week (live courses) plus 3 to 4 hours of independent work, shown as estimates in the week.</p>' : '');
     }
     function renderStart() {
       $('#sec-start').innerHTML = '<div class="choices cols-2">' + data.starts.map(function (s) {
         return '<button type="button" class="choice" data-start="' + s.id + '" aria-pressed="' + (st.start === s.id) + '"><strong>' + esc(s.label) + '</strong><small>' + esc(s.desc) + '</small></button>';
       }).join('') + '</div>' +
+        (isUpfront() ? '<p class="note">Plans with ICL or Aeon are paid in full before the student starts' + (st.start === 'jan' ? ', for the spring semester' : '') + '.</p>' : '') +
         '<p class="note">Wyoming ESA, discounts, and scholarships are in the price panel' + (window.innerWidth < 960 ? ' (tap “See the week”)' : '') + '.</p>' +
         (st.start === 'jan' ? '<p class="note">' + esc(st.esa ? data.esaJanYes : data.esaJanNo) + '</p>' : '');
     }
@@ -527,37 +577,50 @@
         ? 'Discounts and scholarships go through the RadAcad Foundation: <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">radacadfoundation.org/apply</a>' : '';
       $('#sum-apply').hidden = !(st.aid || st.need || st.merit);
     }
+    function fineLines(r) {
+      var pkg = isPkg(), sc = school(st.school), F2 = data.fine, hasIcl = st.school.indexOf('icl') === 0 || st.icl.length, aeon = st.school === 'aeon';
+      var out = [];
+      out.push(r.up ? F2.fullYearMember.replace('{school}', aeon ? 'Aeon' : 'ICL') : F2.monthToMonth);
+      if (hasIcl) {
+        out.push(F2.icl);
+        if (r.jan) out.push(F2.iclJan.replace('{deposit}', pkg && !aeon ? money(sc.deposit) : 'ICL'));
+      }
+      if (aeon) out.push(F2.aeon);
+      if (!r.up) out.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn’t a fit.');
+      if (st.classes.length) out.push('Classes on the same days share a membership day, so two Monday/Wednesday classes still fit a two-day membership.');
+      if (st.merit) out.push('The JHSC award is 50% off membership for first place and 25% for second, awarded annually by committee.');
+      if (st.need) out.push('Need-based awards are set by the Foundation committee and can go toward membership, classes, 1:1, or an online school package.');
+      if (!r.up) out.push('Prepay by the semester or the year for 5% off.');
+      return out;
+    }
     function renderSummary() {
-      var r = compute(), pkg = isPkg(), sc = school(st.school);
+      var r = compute();
       renderCal(); syncDisc();
-      var lines = r.lines.slice();
-      $('#sum-lines').innerHTML = lines.map(function (l) {
-        return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + money(l.amount) + '/mo</span></li>';
-      }).join('') + r.sem.map(function (l) { return '<li class="semline"><span>' + esc(l.label) + '</span><span>' + esc(l.text) + '</span></li>'; }).join('') +
-        (st.esa ? '<li class="sub"><span>Wyoming ESA</span><span>−' + money(S.esaAnnual) + '/yr</span></li>' : '') +
-        (st.need ? '<li class="sub"><span>Need-based scholarship, if awarded</span><span>−' + money(st.need) + '/yr</span></li>' : '');
+      $('#sum-lines').innerHTML = r.lines.map(function (l) {
+        return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + money(l.amount) + l.unit + '</span></li>';
+      }).join('') +
+        (r.up ? '' : r.sem.map(function (l) { return '<li class="semline"><span>' + esc(l.label) + '</span><span>' + esc(l.text) + '</span></li>'; }).join('') +
+          (st.esa ? '<li class="sub"><span>Wyoming ESA</span><span>−' + money(S.esaAnnual) + '/yr</span></li>' : '') +
+          (st.need ? '<li class="sub"><span>Need-based scholarship, if awarded</span><span>−' + money(st.need) + '/yr</span></li>' : ''));
 
-      var fall = st.start === 'fall', period = fall ? 'school year' : 'spring';
-      var credName = st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'Wyoming ESA' : 'scholarship';
-      $('#sum-lbl').textContent = 'Per month' + (r.credits ? ' with ' + credName : '') + ', ' + (fall ? 'nine payments' : 'five payments');
-      $('#sum-big').textContent = money(r.monthlyAfter);
-      $('.mb-num').textContent = money(r.monthlyAfter);
-      var txt = r.credits
-        ? (r.after === 0 ? 'Fully covered. ' : '') + money(r.monthly) + '/mo before ' + (st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'ESA' : 'scholarship') + '. ' + money(r.creditTotal) + ' of your ' + money(r.yearly) + ' ' + period + ' is covered.'
-        : money(r.yearly) + ' for the ' + period + '.';
-      var feeName = st.school === 'aeon' ? (st.classes.length ? 'Class fees and Aeon tuition' : 'Aeon tuition') : 'Class fees';
-      if (r.yearFees) txt += ' ' + feeName + ': ' + (r.credits && r.feesAfter === 0 ? 'covered too.' : r.credits && r.feesAfter < r.yearFees ? money(r.feesAfter) + ' for the ' + period + ' after credits.' : money(r.semPer) + ' per semester.');
-      $('#sum-esa').textContent = txt;
-
-      var fine = ['Membership is month to month with 30 days’ notice.'];
-      if (pkg) fine.push(st.school === 'aeon' ? 'Aeon tuition is billed by semester and paid before the semester starts.'
-        : 'ICL enrollment is a full-' + (fall ? 'year' : 'semester') + ' commitment.' + (!fall ? ' January 2027 families can withdraw by January 31 for a full refund minus a ' + money(sc.deposit) + ' deposit.' : ''));
-      else fine.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn’t a fit.');
-      if (st.classes.length) fine.push('Classes on the same days share a membership day, so two Monday/Wednesday classes still fit a two-day membership.');
-      if (st.merit) fine.push('The JHSC award is 50% off membership for first place and 25% for second, awarded annually by committee.');
-      if (st.need) fine.push('Need-based awards are set by the Foundation committee and can go toward membership, classes, 1:1, or an online school package.');
-      fine.push('Prepay by the semester or the year for 5% off.');
-      $('#sum-fine').innerHTML = '<li class="confirm">' + esc(S.finePrint) + '</li>' + fine.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+      if (r.up) {
+        $('#sum-lbl').textContent = 'Total for the ' + r.period + ', paid before the student starts';
+        $('#sum-big').textContent = money(r.total);
+        $('.mb-num').textContent = money(r.total); $('.mb-per').textContent = r.jan ? ' spring' : '/yr';
+        $('#sum-esa').textContent = (r.total === 0 ? 'Fully covered. ' : '') +
+          (st.esa ? data.esaQuarterly : 'Includes the ' + (r.jan ? 'spring' : 'year') + '’s membership, since ICL and Aeon require it for the length of enrollment.');
+      } else {
+        var credName = st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'Wyoming ESA' : 'scholarship';
+        $('#sum-lbl').textContent = 'Per month' + (r.credits ? ' with ' + credName : '') + ', ' + (r.jan ? 'five payments' : 'nine payments');
+        $('#sum-big').textContent = money(r.monthlyAfter);
+        $('.mb-num').textContent = money(r.monthlyAfter); $('.mb-per').textContent = '/mo';
+        var txt = r.credits
+          ? (r.after === 0 ? 'Fully covered. ' : '') + money(r.monthly) + '/mo before ' + (st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'ESA' : 'scholarship') + '. ' + money(r.creditTotal) + ' of your ' + money(r.yearly) + ' ' + r.period + ' is covered.'
+          : money(r.yearly) + ' for the ' + r.period + '.';
+        if (r.groupYear) txt += ' Class tuition: ' + (r.credits && r.tuitionAfter === 0 ? 'covered too.' : r.credits && r.tuitionAfter < r.groupYear ? money(r.tuitionAfter) + ' for the ' + r.period + ' after credits.' : money(r.semPer) + ' per semester.');
+        $('#sum-esa').textContent = txt;
+      }
+      $('#sum-fine').innerHTML = '<li class="confirm">' + esc(S.finePrint) + '</li>' + fineLines(r).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
       $('#sum-cta').hidden = st.sent;
     }
 
@@ -566,14 +629,14 @@
       if (!el || !el.tagName) return '';
       if (el.id) return '#' + el.id;
       var d = el.dataset || {};
-      var keys = ['preset', 'grade', 'school', 'day', 'tier', 'dec', 'inc', 'dept', 'start', 'addIcl', 'fmt'];
+      var keys = ['preset', 'path', 'grade', 'day', 'tier', 'dec', 'inc', 'dept', 'start', 'addIcl', 'fmt'];
       for (var i = 0; i < keys.length; i++) if (d[keys[i]] !== undefined) return keys[i] + ':' + d[keys[i]] + (d.live || '');
       return '';
     }
     function render() {
       var key = focusKey(root.activeElement);
       normalize();
-      renderGrade(); renderPresets(); renderSchool(); renderDays(); renderAddons(); renderIcl(); renderStart(); renderSummary();
+      renderGrade(); renderPath(); renderDays(); renderAddons(); renderIcl(); renderStart(); renderSummary();
       app.classList.toggle('sheet-open', st.sheet);
       app.classList.toggle('is-sent', st.sent);
       if (key) {
@@ -599,9 +662,17 @@
       }
       st.clsNotice = false; if (!d.grade) st.iclDropped = null;
       if (d.preset) { applyPreset(d.preset); started(); render(); return; }
+      if (d.path) {
+        st.path = d.path;
+        if (d.path === 'own' && isPkg()) { Object.assign(st, JSON.parse(JSON.stringify(BLANK))); st.preset = null; st.notice = ''; }
+        track('plan_builder_path', { path: d.path }); started(); render(); return;
+      }
+      if ((d.tier || d.day) && isPkg()) {
+        st.notice = school(st.school).name + ' includes the full week, Monday through Friday. To pick different days, choose “Build your own” in step 2.';
+        render(); return;
+      }
       st.preset = null;
-      if (d.school) { var wasPkg = isPkg(); st.school = d.school; if (wasPkg && st.school === 'own') setDayCount(2); track('plan_builder_school', { school: d.school }); }
-      else if (d.tier) setDayCount(+d.tier);
+      if (d.tier) setDayCount(+d.tier);
       else if (d.day) toggleDay(d.day);
       else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.max : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
       else if (d.dec) { if (st[d.dec] > 0) st[d.dec]--; }
@@ -687,19 +758,22 @@
         heard: F.heard || '',
         notes: (F.current ? 'Current school: ' + F.current + '\n' : '') + (F.notes || ''),
         answers: {
-          coursework: sc.name,
+          coursework: isPkg() ? sc.name : 'Build your own',
           days: isPkg() ? 'Full week' : st.days.join(', '),
           needs: [st.esa ? 'Has Wyoming ESA' : 'No ESA', st.aid ? st.aid + '% income-based discount' : '', st.merit ? 'JHSC merit ' + st.merit + '%' : '',
             st.need ? 'Need-based scholarship request ' + money(st.need) + '/yr' : ''].filter(Boolean),
           suggested: preset ? 'Started from: ' + preset.name : ''
         },
         plan: {
-          name: preset ? preset.name : isPkg() ? sc.name.replace(', through RadAcad', '') : membershipName(st.days.length) + ' plan',
+          name: preset ? preset.name : isPkg() ? sc.name : membershipName(st.days.length) + ' plan',
           days: st.days,
-          lines: r.lines.map(function (l) { return { label: l.label, amount: Math.round(l.amount) }; }),
-          monthly: Math.round(r.monthly),
-          classFees: r.sem.map(function (s) { return s.label + ': ' + s.text; }).join('; '),
-          esa: r.credits ? money(Math.round(r.monthlyAfter)) + '/mo with ' + (st.esa ? 'ESA' : '') + (st.esa && st.need ? ' and ' : '') + (st.need ? 'scholarship' : '') + ' (' + money(r.after) + ' for the ' + (fall ? 'school year' : 'spring') + ')' : 'No ESA: ' + money(r.yearly) + ' for the ' + (fall ? 'school year' : 'spring')
+          billing: r.up ? 'upfront' : 'monthly',
+          lines: r.lines.map(function (l) { return { label: l.label, amount: Math.round(l.amount), unit: l.unit }; }),
+          monthly: r.up ? 0 : Math.round(r.monthly),
+          total: r.up ? Math.round(r.total) : Math.round(r.monthlyAfter),
+          totalLabel: r.up ? 'Total for the ' + r.period + ', paid before the student starts' : 'Per month' + (r.credits ? ' after ESA and scholarships' : '') + ', ' + (r.jan ? 'five' : 'nine') + ' payments',
+          classFees: r.up ? '' : r.sem.map(function (s) { return s.label + ': ' + s.text; }).join('; '),
+          esa: st.esa ? 'Wyoming ESA applied' : 'No ESA'
         }
       };
       var btn = form.querySelector('.submit');
@@ -711,7 +785,7 @@
         : new Promise(function (resolve) { console.info('[plan builder] Preview mode: no endpoint set, so nothing was sent.', payload); setTimeout(resolve, 600); });
       send.then(function () {
         st.sent = true;
-        track('plan_builder_submit', { plan: payload.plan.name, value: payload.plan.monthly, currency: 'USD' });
+        track('plan_builder_submit', { plan: payload.plan.name, value: payload.plan.total, billing: payload.plan.billing, currency: 'USD' });
         renderForm(); render();
         var h = $('#h-send'); if (h) h.focus({ preventScroll: true });
       }).catch(function (error) {

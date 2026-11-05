@@ -23,36 +23,36 @@
     {
       "id": "own",
       "name": "We’ll build a hybrid, or we have our own school",
-      "priceLabel": "Membership plus what you add",
       "desc": "Homeschool, another online school, or a mix: RadAcad small group classes, a few ICL courses à la carte, and 1:1 where it’s needed. You choose the pieces below."
     },
     {
       "id": "icl-live",
-      "name": "ICL Academy, live classes, through RadAcad",
-      "monthly": 2875,
-      "membershipPart": 1200,
-      "deposit": 450,
+      "name": "ICL Academy, live classes",
+      "deposit": 900,
       "chip": "ICL classes",
-      "desc": "Full online school with live teachers. Full-week membership and daily coaching included. One bill."
+      "desc": "Full online school with live ICL teachers. Full-week membership and daily coaching included. One price for the year.",
+      "yearly": 20700,
+      "janPrice": 10350,
+      "membershipMonthly": 1200
     },
     {
       "id": "icl-async",
-      "name": "ICL Academy, self-paced, through RadAcad",
-      "monthly": 2425,
-      "membershipPart": 1200,
-      "deposit": 300,
+      "name": "ICL Academy, self-paced",
+      "deposit": 600,
       "chip": "ICL classes",
-      "desc": "Same school, asynchronous courses. Full-week membership included."
+      "desc": "The same school with self-paced courses. Full-week membership and daily coaching included. One price for the year.",
+      "yearly": 17550,
+      "janPrice": 8775,
+      "membershipMonthly": 1200
     },
     {
       "id": "aeon",
-      "name": "Aeon School, through RadAcad",
-      "monthly": 1200,
-      "membershipPart": 1200,
-      "semesterFee": 10500,
-      "priceLabel": "$1,200/mo + $10,500 per semester",
+      "name": "Aeon School",
       "chip": "Aeon classes",
-      "desc": "Seminar-style school aimed at selective colleges. Aeon tuition is paid by semester; the full-week membership is monthly."
+      "desc": "Seminar-style partner school. Full-week membership included. One price for the year.",
+      "yearly": 27300,
+      "janPrice": 22500,
+      "membershipMonthly": 1200
     }
   ],
   "membership": {
@@ -94,7 +94,7 @@
   "smallGroup": {
     "fallFee": 1250,
     "springFee": 1800,
-    "desc": "Grades 6–8. Two 90-minute sessions a week, taught in person. $1,250 for fall, $1,800 for spring, per class. Pick as many as fit the week; classes on the same days share a membership day.",
+    "desc": "Two 90-minute sessions a week, taught in person. $1,250 for fall, $1,800 for spring, per class. Pick as many as fit the week; classes on the same days share a membership day.",
     "scheduleNote": "The fall schedule is shown; spring classes are posted in December.",
     "classes": [
       {
@@ -171,7 +171,7 @@
         "name": "Mastery Math",
         "short": "Math",
         "who": "Kirby",
-        "when": "Tue & Thu, 8:30–10:00",
+        "when": "Tue & Thu, 10:15–11:45",
         "days": [
           "Tue",
           "Thu"
@@ -179,13 +179,13 @@
         "sessions": [
           [
             "Tue",
-            "08:30",
-            "10:00"
+            "10:15",
+            "11:45"
           ],
           [
             "Thu",
-            "08:30",
-            "10:00"
+            "10:15",
+            "11:45"
           ]
         ]
       },
@@ -240,10 +240,10 @@
     "maxGrade": 8
   },
   "iclAlaCarte": {
-    "live": 280,
-    "async": 225,
+    "live": 2250,
+    "async": 1700,
     "max": 3,
-    "desc": "Up to three accredited online courses alongside your own school, done here with a coach. Live classes are $280 a month per course; self-paced is $225. Search the catalog and pick what you need.",
+    "desc": "Up to three accredited online courses from ICL Academy, taught by ICL teachers. Students work on them here on membership days, with a RadAcad coach keeping them on track. Search the catalog and pick what you need.",
     "departments": [
       "All",
       "Math",
@@ -255,7 +255,9 @@
       "Electives"
     ],
     "liveMin": 45,
-    "workMin": 210
+    "workMin": 210,
+    "liveJan": 1125,
+    "asyncJan": 850
   },
   "aid": [
     {
@@ -471,7 +473,7 @@
     {
       "n": "English 8 HONORS",
       "d": "English",
-      "ms": false
+      "ms": true
     },
     {
       "n": "English 9",
@@ -903,7 +905,7 @@
     {
       "id": "icl-live",
       "name": "Full week + ICL live",
-      "built": "Online school package, live",
+      "built": "Full week + ICL Academy live classes",
       "set": {
         "school": "icl-live"
       }
@@ -911,7 +913,7 @@
     {
       "id": "icl-async",
       "name": "Full week + ICL self-paced",
-      "built": "Online school package, self-paced",
+      "built": "Full week + ICL Academy self-paced",
       "set": {
         "school": "icl-async"
       }
@@ -957,8 +959,8 @@
     },
     {
       "id": "aeon",
-      "name": "Premium: full week + Aeon School",
-      "built": "Full-week membership + Aeon tuition by semester",
+      "name": "Full week + Aeon School",
+      "built": "Full week + Aeon School",
       "set": {
         "school": "aeon"
       }
@@ -1004,5 +1006,19 @@
       "max": 15000,
       "step": 500
     }
-  }
+  },
+  "addHint": "1:1 coaching and single-subject classes are month to month. Small group classes run by the semester. ICL courses are a full-year commitment.",
+  "youngerNote": {
+    "text": "Have a younger student? We build custom 1:1 plans for kids below 5th grade.",
+    "link": "Tell us about your family here",
+    "href": "/getstarted"
+  },
+  "fine": {
+    "monthToMonth": "Membership is month to month with 30 days’ notice.",
+    "fullYearMember": "Your membership runs for the full year of {school} enrollment.",
+    "icl": "ICL tuition is paid in full before the student starts. A student who leaves mid-year owes the semester they attended. A January ICL start is a spring-semester commitment.",
+    "iclJan": "January 2027 families can withdraw by January 31 for a full refund minus a non-refundable {deposit} deposit.",
+    "aeon": "Aeon tuition is paid in full before the student starts and is non-refundable once the student has started."
+  },
+  "esaQuarterly": "ESA funds release quarterly ($1,750 a quarter), so you pay up front and use ESA through the year."
 }
