@@ -65,3 +65,13 @@ Edit `public/plans.json`, then `git add . && git commit -m "Update" && git push`
 ## Copy rules
 - RadAcad is **not a school**. "School" is only ever a verb ("School differently.").
 - "How does RadAcad work?" positions RadAcad as what students do *instead of* school.
+
+## Round 5 (Garrett, Nov 6)
+- **Encoding:** every non-ASCII character in `embed.js` is written as a `\uXXXX` escape, so the file decodes correctly even on a page with the wrong charset. The script tag also carries `charset="utf-8"`, and `_headers` sends a UTF-8 Content-Type. If you edit copy in `embed.js`, keep it ASCII or escape it; copy in `plans.json` can use normal characters.
+- Step 1 is grade **and** start date. Steps are now: 1 grade + start, 2 example or build your own, 3 days, 4 add-ons, 5 send.
+- Small group classes: grades 5–8 (`smallGroup.minGrade`). On monthly plans each class is a flat monthly line: (fall $1,250 + spring $1,800) ÷ 9, or spring ÷ 5 for January. Fine print adds "Small group classes are a semester commitment."
+- **Clubs** (`clubs` in `plans.json`): Robotics Club, grades K–8, Wednesdays 2:00–3:30, $0 for members, Winter and Spring sessions as separate checkboxes. Picking it adds Wednesday to the membership if needed. Non-member pricing lives on the website club page, not here. Community Club stays a small group class but uses `"type": "club"` so it shows in the club color.
+- Week colors: coach (goals, check-ins, weekly plan, 1:1 coaching) #a664ab; RadAcad classes (small group and single-subject) #1b6f69; clubs #259991; ICL/Aeon #d9fbd8. No black.
+- Purple total block shows only what the family pays: "Your part: $X a month, nine payments" / "Your part: $X, paid before the student starts" / "Nothing out of pocket."
+- Package cards show one number, after ESA and discounts: "$13,700, paid yearly" (January: "$3,350 for spring, paid yearly").
+- ICL and Aeon explainers link to iclacademy.org and aeonschool.org (`explain.*.url`). The JHSC title and the Foundation line link to radacadfoundation.org/apply; the Foundation line is always visible.

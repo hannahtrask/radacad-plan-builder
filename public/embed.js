@@ -1,5 +1,5 @@
 /*!
- * Radical Minds Academy — "Build your RadAcad week"
+ * Radical Minds Academy \u2014 "Build your RadAcad week"
  * Left: families build the plan. Right: the student's week (timed) and price, live.
  * Built by Sagebrush Web Studio.
  *
@@ -26,7 +26,7 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function money(n) { return (n < 0 ? '−' : '') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US'); }
+  function money(n) { return (n < 0 ? '\u2212' : '') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US'); }
   function toMin(t) { var p = t.split(':'); return +p[0] * 60 + +p[1]; }
   function clock(m) { var h = Math.floor(m / 60), mm = m % 60; return ((h + 11) % 12 + 1) + ':' + (mm < 10 ? '0' : '') + mm; }
   function sortDays(a) { return DAYS.filter(function (d) { return a.indexOf(d) !== -1; }); }
@@ -58,13 +58,13 @@
     if (mount.shadowRoot) return;
     injectFonts();
     var root = mount.attachShadow({ mode: 'open' });
-    root.innerHTML = '<link rel="stylesheet" href="' + BASE + 'builder.css"><div class="rma"><p class="loading">Loading the plan builder…</p></div>';
+    root.innerHTML = '<link rel="stylesheet" href="' + BASE + 'builder.css"><div class="rma"><p class="loading">Loading the plan builder\u2026</p></div>';
     fetch(BASE + 'plans.json', { cache: 'no-cache' })
       .then(function (r) { if (!r.ok) throw new Error('plans.json ' + r.status); return r.json(); })
       .then(function (data) { init(root, data, mount); })
       .catch(function (err) {
         console.error('[plan builder]', err);
-        root.querySelector('.rma').innerHTML = '<p class="loading">The plan builder didn’t load. Refresh the page, or <a href="/getstarted">tell us about your family here</a>.</p>';
+        root.querySelector('.rma').innerHTML = '<p class="loading">The plan builder didn\u2019t load. Refresh the page, or <a href="/getstarted">tell us about your family here</a>.</p>';
       });
   }
 
@@ -75,9 +75,16 @@
     var schools = data.schools.filter(function (s) { return !s.hidden; });
     function school(id) { return data.schools.filter(function (s) { return s.id === id; })[0]; }
     function cls(id) { return G.classes.filter(function (c) { return c.id === id; })[0]; }
+    function linked(x) {
+      var body = esc(x.body), name = esc(x.link || ''), i = name ? body.indexOf(name) : -1;
+      if (i < 0 || !x.url) return body;
+      return body.slice(0, i) + '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + name + '</a>' + body.slice(i + name.length);
+    }
     function startOf(id) { return data.starts.filter(function (s) { return s.id === id; })[0]; }
 
-    var BLANK = { school: 'own', days: ['Mon', 'Wed'], checkin: false, close: false, coach: 0, single: 0, classes: [], icl: [] };
+    var BLANK = { school: 'own', days: ['Mon', 'Wed'], checkin: false, close: false, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
+    var CLUBS = data.clubs || [];
+    function club(id) { return CLUBS.filter(function (c) { return c.id === id; })[0]; }
     var st = Object.assign(JSON.parse(JSON.stringify(BLANK)), {
       grade: null, start: 'fall', esa: true, aid: 0, merit: 0, need: 0,
       path: 'own', preset: null, notice: '', dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
@@ -91,12 +98,16 @@
     function classDays(list) {
       var set = {};
       (list || st.classes).forEach(function (id) { cls(id).days.forEach(function (d) { set[d] = true; }); });
+      if (!list) st.clubs.forEach(function (id) { club(id).days.forEach(function (d) { set[d] = true; }); });
       return DAYS.filter(function (d) { return set[d]; });
     }
+    function clubOK(c) { return st.grade === null || (st.grade >= c.minGrade && st.grade <= c.maxGrade); }
     function dropClassesOutside(days) {
       var gone = st.classes.filter(function (id) { return cls(id).days.some(function (d) { return days.indexOf(d) === -1; }); });
       st.classes = st.classes.filter(function (id) { return gone.indexOf(id) === -1; });
-      return gone.map(function (id) { return cls(id).name; });
+      var goneC = st.clubs.filter(function (id) { return club(id).days.some(function (d) { return days.indexOf(d) === -1; }); });
+      st.clubs = st.clubs.filter(function (id) { return goneC.indexOf(id) === -1; });
+      return gone.map(function (id) { return cls(id).name; }).concat(goneC.map(function (id) { return club(id).name; }));
     }
     function setDayCount(n) {
       var pool = classDays().concat(st.days, FILL_ORDER), out = [];
@@ -126,6 +137,7 @@
     function normalize() {
       if (isPkg()) { st.days = DAYS.slice(); st.icl = []; }
       if (!groupsOK()) st.classes = [];
+      st.clubs = st.clubs.filter(function (id) { return clubOK(club(id)); });
       if (!closeOK()) st.close = false;
       var keepIcl = st.icl.filter(function (c) { return courseOK(c.n); });
       if (keepIcl.length < st.icl.length) { st.iclDropped = st.icl.filter(function (c) { return !courseOK(c.n); }).map(function (c) { return c.n; }); st.icl = keepIcl; }
@@ -137,11 +149,17 @@
     function membershipName(n) { return n >= 5 ? 'Full-week membership' : n <= 2 ? 'Two-day membership' : DAY_WORD[n].replace(' days', '-day') + ' membership'; }
 
     /* ---------- pricing ---------- */
-    // Plans with ICL or Aeon (a package, or any à la carte ICL course) are one yearly price, paid up front.
+    // Plans with ICL or Aeon (a package, or any \u00e0 la carte ICL course) are one yearly price, paid up front.
     // Everything else is monthly, with small group classes billed by the semester.
     function isUpfront() { return isPkg() || st.icl.length > 0; }
     function schoolWord() { return st.school === 'aeon' ? 'Aeon' : 'ICL'; }
     function iclPrice(c, jan) { return c.live ? (jan ? IC.liveJan : IC.live) : (jan ? IC.asyncJan : IC.async); }
+    function clubLines() {
+      return st.clubs.map(function (id) {
+        var c = club(id), terms = (st.clubTerms[id] || []).map(function (t) { return c.terms.filter(function (x) { return x.id === t; })[0].label.replace(' session', ''); });
+        return { label: c.name + (terms.length ? ' (' + terms.join(' and ').toLowerCase() + ')' : ''), amount: 0, cls: '', unit: '', text: c.priceNote };
+      });
+    }
     function compute() {
       var sc = school(st.school), start = startOf(st.start), pkg = isPkg(), n = st.days.length;
       var P = start.payments, jan = st.start === 'jan', fall = !jan, up = isUpfront();
@@ -163,6 +181,7 @@
         if (st.coach) addY(st.coach + ' hr/week of 1:1 coaching for the ' + period, A.coaching.price * st.coach * P);
         if (st.single) addY(st.single + ' single-subject class' + (st.single > 1 ? 'es' : '') + ' for the ' + period, A.single.price * st.single * P);
         st.classes.forEach(function (id) { addY(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), fall ? G.fallFee + G.springFee : G.springFee); });
+        clubLines().forEach(function (l) { lines.push(l); });
         var gross = sum;
         if (st.aid) addY('Income-based discount on membership (' + st.aid + '%)', -memMonthly * P * st.aid / 100, 'sub');
         if (st.merit) addY('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * P * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
@@ -183,13 +202,13 @@
       if (st.close) add(A.close.name, A.close.price);
       if (st.coach) add(st.coach + ' hr/week of 1:1 coaching', A.coaching.price * st.coach);
       if (st.single) add(st.single + ' single-subject class' + (st.single > 1 ? 'es' : ''), A.single.price * st.single);
-      var sem = st.classes.map(function (id) { return { label: cls(id).name + (fall ? ' (fall)' : ' (spring)'), text: money(fall ? G.fallFee : G.springFee) + ' per semester' }; });
-      var yearly = monthly * P + groupYear;
+      // small group tuition spread evenly over the payments, so the monthly number stays flat
+      st.classes.forEach(function (id) { add(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), (fall ? G.fallFee + G.springFee : G.springFee) / P); });
+      clubLines().forEach(function (l) { mlines.push(l); });
+      var yearly = monthly * P;
       var creditTotal = Math.min(credits, yearly);
       var monthlyAfter = Math.max(0, monthly - credits / P);
-      var leftover = creditTotal - (monthly - monthlyAfter) * P;
-      var tuitionAfter = Math.max(0, groupYear - leftover);
-      return { up: false, lines: mlines, sem: sem, semPer: groupSem, monthly: monthly, monthlyAfter: monthlyAfter, groupYear: groupYear, tuitionAfter: tuitionAfter,
+      return { up: false, lines: mlines, monthly: monthly, monthlyAfter: monthlyAfter, groupYear: groupYear,
         yearly: yearly, credits: credits, creditTotal: creditTotal, after: Math.max(0, yearly - creditTotal), payments: P, period: period, jan: jan, memMonthly: memMonthly };
     }
 
@@ -214,7 +233,11 @@
       });
       st.classes.forEach(function (id) {
         var c = cls(id);
-        c.sessions.forEach(function (x) { if (on.indexOf(x[0]) !== -1) put(x[0], toMin(x[1]), toMin(x[2]), c.short, 'cls'); });
+        c.sessions.forEach(function (x) { if (on.indexOf(x[0]) !== -1) put(x[0], toMin(x[1]), toMin(x[2]), c.short, c.type === 'club' ? 'club' : 'cls'); });
+      });
+      st.clubs.forEach(function (id) {
+        var c = club(id);
+        c.sessionsTime.forEach(function (x) { if (on.indexOf(x[0]) !== -1) put(x[0], toMin(x[1]), toMin(x[2]), c.short, 'club'); });
       });
       if (pkg) {
         var name = st.school === 'aeon' ? 'Aeon' : 'ICL';
@@ -227,7 +250,7 @@
       }
       /* flexible items, spread through the week and the day */
       var items = [];
-      for (var i = 0; i < st.single; i++) for (var j = 0; j < A.single.sessions; j++) items.push({ dur: A.single.sessionMin, label: 'Single-subject class', k: 'one', group: 's' + i });
+      for (var i = 0; i < st.single; i++) for (var j = 0; j < A.single.sessions; j++) items.push({ dur: A.single.sessionMin, label: 'Single-subject class', k: 'cls', group: 's' + i });
       for (var c2 = 0; c2 < st.coach; c2++) items.push({ dur: 60, label: '1:1 coaching', k: 'one', group: 'c' });
       st.icl.forEach(function (c, i) {
         if (c.live) items.push({ dur: IC.liveMin, label: 'ICL ' + c.n + ' live', k: 'icl', group: 'i' + i });
@@ -269,52 +292,53 @@
     var app = root.querySelector('.rma');
     app.innerHTML =
       '<header class="intro">' +
-        '<p class="tagline">Build your RadAcad week</p>' +
+        '<p class="tagline">Build Your RadAcad Week</p>' +
         '<p class="lede">Every student starts with a membership. Start from an example plan or build your own, and watch the week and the price fill in.</p>' +
       '</header>' +
       '<div class="layout">' +
         '<div class="builder">' +
-          '<section class="step" aria-labelledby="h-grade"><h3 id="h-grade"><span class="num">1</span>What grade is your student in?</h3>' +
-            '<p class="hint">RadAcad serves grades 5–12. Your student’s grade shapes their day and which classes they can join.</p><div id="sec-grade"></div></section>' +
-          '<section class="step" aria-labelledby="h-path"><h3 id="h-path"><span class="num">2</span>Start from an example, or build your own</h3>' +
+          '<section class="step" aria-labelledby="h-grade"><h3 id="h-grade"><span class="num">1</span>What Grade Is Your Student In, and When Would They Start?</h3>' +
+            '<p class="hint">RadAcad serves grades 5\u201312. Grade and start date shape your student\u2019s day, which classes they can join, and every price on this page.</p><div id="sec-grade"></div>' +
+            '<p class="sub-q">When would they start?</p><div id="sec-start"></div></section>' +
+          '<section class="step" aria-labelledby="h-path"><h3 id="h-path"><span class="num">2</span>Start From an Example, or Build Your Own</h3>' +
             '<div class="path" role="group" aria-label="How to start">' +
-              '<button type="button" class="path-b" data-path="own"><strong>Build your own</strong><small>Pick days and add what your student needs</small></button>' +
-              '<button type="button" class="path-b" data-path="example"><strong>Start from an example</strong><small>Including our partner school packages</small></button>' +
+              '<button type="button" class="path-b" data-path="own"><strong>Build Your Own</strong><small>Pick days and add what your student needs</small></button>' +
+              '<button type="button" class="path-b" data-path="example"><strong>Start From an Example or Online School Partner Package</strong><small>Our example plans, plus ICL Academy and Aeon School packages</small></button>' +
             '</div>' +
             '<div id="sec-path"></div></section>' +
-          '<section class="step" aria-labelledby="h-days"><h3 id="h-days"><span class="num">3</span>Which days?</h3>' +
+          '<section class="step" aria-labelledby="h-days"><h3 id="h-days"><span class="num">3</span>Which Days?</h3>' +
             '<p class="hint">' + esc(M.dayNote) + '</p><div id="sec-days"></div></section>' +
-          '<section class="step" aria-labelledby="h-add"><h3 id="h-add"><span class="num">4</span>Add what your student needs</h3>' +
+          '<section class="step" aria-labelledby="h-add"><h3 id="h-add"><span class="num">4</span>Add What Your Student Needs</h3>' +
             '<p class="hint">' + esc(data.addHint) + ' ' + esc(G.scheduleNote) + '</p>' +
             '<div id="sec-addons"></div>' +
-            '<div class="addon block" id="sec-classes-wrap"><p class="addon-title">Small group classes</p><div id="sec-classes-body"></div></div>' +
-            '<div class="addon block" id="sec-icl-wrap"><p class="addon-title">ICL Academy courses, à la carte</p><p class="addon-desc">' + esc(IC.desc) + '</p>' +
-              '<details class="explain-inline"><summary>' + esc(EX.icl.title) + '</summary><p>' + esc(EX.icl.body) + '</p></details>' +
+            '<div class="addon block" id="sec-classes-wrap"><p class="addon-title">Small Group Classes</p><div id="sec-classes-body"></div></div>' +
+            '<div class="addon block" id="sec-clubs-wrap"><p class="addon-title">Clubs</p><div id="sec-clubs-body"></div></div>' +
+            '<div class="addon block" id="sec-icl-wrap"><p class="addon-title">ICL Academy Courses, \u00e0 la Carte</p><p class="addon-desc">' + esc(IC.desc) + '</p>' +
+              '<details class="explain-inline"><summary>' + esc(EX.icl.title) + '</summary><p>' + linked(EX.icl) + '</p></details>' +
               '<label class="sr" for="rma-icl-q">Search ICL courses</label>' +
-              '<input class="search" id="rma-icl-q" type="search" placeholder="Search ICL courses (Algebra, English 9, AP Biology, Spanish…)" autocomplete="off">' +
+              '<input class="search" id="rma-icl-q" type="search" placeholder="Search ICL courses (Algebra, English 9, AP Biology, Spanish\u2026)" autocomplete="off">' +
               '<div class="pills" id="sec-depts"></div><div class="icl-list" id="sec-icl-list"></div><div class="picked" id="sec-icl-picked"></div></div>' +
           '</section>' +
-          '<section class="step" aria-labelledby="h-start"><h3 id="h-start"><span class="num">5</span>When would you start?</h3><div id="sec-start"></div></section>' +
-          '<section class="step" id="rma-send" aria-labelledby="h-send"><h3 id="h-send" tabindex="-1"><span class="num">6</span>Send this plan and book a call</h3>' +
+          '<section class="step" id="rma-send" aria-labelledby="h-send"><h3 id="h-send" tabindex="-1"><span class="num">5</span>Send This Plan and Book a Call</h3>' +
             '<div id="sec-form"></div></section>' +
         '</div>' +
-        '<aside class="summary" aria-label="Your student’s week and price">' +
-          '<div class="sum-head"><h3>Your student’s week</h3><button type="button" class="sheet-close">Close</button></div>' +
+        '<aside class="summary" aria-label="Your student\u2019s week and price">' +
+          '<div class="sum-head"><h3>Your Student\u2019s Week</h3><button type="button" class="sheet-close">Close</button></div>' +
           '<div class="cal" id="sum-cal"></div>' +
           '<div id="sum-legend"></div>' +
           '<div class="disc" id="sum-disc">' +
-            '<p class="disc-h">Before you look at the price, check what applies to you</p>' +
+            '<p class="disc-h">Before You Look at the Price, Check What Applies to You</p>' +
             '<label class="toggle"><input type="checkbox" id="rma-esa"><span><b>Wyoming ESA</b>: $7,000 a year for any student not in public school. Every family who has applied has been approved. ' + esc(data.esaQuarterly) + '</span></label>' +
-            '<label class="toggle"><input type="checkbox" id="rma-aid10" data-aid="10"><span><b>10% off membership</b>: household income is 80–120% of the Teton County median.</span></label>' +
+            '<label class="toggle"><input type="checkbox" id="rma-aid10" data-aid="10"><span><b>10% off membership</b>: household income is 80\u2013120% of the Teton County median.</span></label>' +
             '<label class="toggle"><input type="checkbox" id="rma-aid20" data-aid="20"><span><b>20% off membership</b>: household income is below 80% of the county median.</span></label>' +
-            '<div class="disc-group"><p class="dg-h"><b>' + esc(SCH.merit.title) + '</b>: ' + esc(SCH.merit.desc) + '</p>' +
+            '<div class="disc-group"><p class="dg-h"><a class="dg-link" href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener"><b>' + esc(SCH.merit.title) + '</b></a>: ' + esc(SCH.merit.desc) + '</p>' +
               SCH.merit.options.map(function (o) { return '<label class="toggle"><input type="checkbox" id="rma-merit' + o + '" data-merit="' + o + '"><span>' + o + '% off membership' + (o === 50 ? ' (first place)' : ' (second place)') + '</span></label>'; }).join('') + '</div>' +
             '<div class="disc-group"><p class="dg-h"><b>' + esc(SCH.need.title) + '</b>: ' + esc(SCH.need.desc) + '</p>' +
               '<label class="slider-row" for="rma-need"><span class="sr">Need-based scholarship amount per year</span>' +
               '<input type="range" id="rma-need" min="' + (SCH.need.min - SCH.need.step) + '" max="' + SCH.need.max + '" step="' + SCH.need.step + '" value="' + (SCH.need.min - SCH.need.step) + '">' +
               '<output id="rma-need-out">None</output></label>' +
               '<p class="range-ends"><span>None</span><span>' + money(SCH.need.max) + ' a year</span></p></div>' +
-            '<p class="note" id="sum-apply"></p>' +
+            '<p class="note foundation">Discounts and scholarships go through the RadAcad Foundation: <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">radacadfoundation.org/apply</a></p>' +
           '</div>' +
           '<ul class="lines" id="sum-lines"></ul>' +
           '<div class="total"><p class="lbl" id="sum-lbl"></p><p class="big" id="sum-big"></p><p class="esa" id="sum-esa"></p></div>' +
@@ -328,8 +352,8 @@
     var $ = function (s) { return app.querySelector(s); };
     function priceText(r) {
       if (r.up) return money(r.total) + ' for the ' + r.period;
-      if (r.monthlyAfter === 0 && !r.tuitionAfter && r.credits) return 'Fully covered';
-      return money(r.monthlyAfter) + '/mo' + (r.groupYear && r.tuitionAfter ? ' + ' + money(r.tuitionAfter) + ' class tuition' : '');
+      if (r.monthlyAfter === 0 && r.credits) return 'Fully covered';
+      return money(r.monthlyAfter) + '/mo';
     }
 
     /* ---------- left renderers ---------- */
@@ -342,7 +366,7 @@
         (st.grade !== null ? '<p class="note">' + (isMS()
           ? 'Middle schoolers set goals with a coach each morning, get a check-in at every transition, and finish with a final check-in.'
           : 'High schoolers set goals with a coach each morning, get a midday check-in, and finish with a final check-in. Close support adds hourly check-ins.') +
-          (groupsOK() ? ' Small group classes are open to grades ' + G.minGrade + '–' + G.maxGrade + '.' : '') + '</p>' : '');
+          (groupsOK() ? ' Small group classes are open to grades ' + G.minGrade + '\u2013' + G.maxGrade + '.' : '') + '</p>' : '');
     }
     function presetOK(p) { return !p.grades || st.grade === null || (st.grade >= p.grades[0] && st.grade <= p.grades[1]); }
     function applyPreset(id, quiet) {
@@ -365,9 +389,7 @@
       var jan = st.start === 'jan';
       return '<button type="button" class="preset' + (sc ? ' pkg' : '') + '" data-preset="' + p.id + '" aria-pressed="' + on + '">' +
         '<strong>' + esc(p.name) + '</strong><small>' + esc(p.built) + '</small>' +
-        (sc ? '<span class="pp">' + money(jan ? sc.janPrice : sc.yearly) + ' for the ' + (jan ? 'spring' : 'year') + ', paid before the student starts</span>' +
-              (r.credits ? '<span class="pp2">' + money(r.total) + ' after your credits and discounts</span>' : '')
-            : '<span class="pp">' + priceText(r) + '</span>') + '</button>';
+        '<span class="pp">' + (sc ? (r.total === 0 ? 'Fully covered' : money(r.total) + (jan ? ' for spring' : '') + ', paid yearly') : priceText(r)) + '</span></button>';
     }
     function renderPath() {
       app.querySelectorAll('[data-path]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.path === st.path)); });
@@ -378,14 +400,14 @@
       var list = data.presets.filter(function (p) { return (!p.set.school || !school(p.set.school).hidden) && presetOK(p); });
       var plans = list.filter(function (p) { return !p.set.school; }), pkgs = list.filter(function (p) { return p.set.school; });
       $('#sec-path').innerHTML =
-        '<p class="hint">Pick the one closest to your family, then change anything below. Monthly prices include Wyoming ESA.</p>' +
+        '<p class="hint">Pick the one closest to your family, then change anything below.</p>' +
         '<div class="presets">' + plans.map(presetCard).join('') + '</div>' +
-        (pkgs.length ? '<p class="group-h">Partner school packages</p>' +
+        (pkgs.length ? '<p class="group-h">Partner School Packages</p>' +
           '<p class="hint">Full-time online school with a full-week RadAcad membership, one price for the year.</p>' +
           '<div class="presets">' + pkgs.map(presetCard).join('') + '</div>' +
           '<div class="explain">' +
-            '<details><summary>' + esc(EX.icl.title) + '</summary><p>' + esc(EX.icl.body) + '</p></details>' +
-            (school('aeon').hidden ? '' : '<details><summary>' + esc(EX.aeon.title) + '</summary><p>' + esc(EX.aeon.body) + '</p></details>') +
+            '<details><summary>' + esc(EX.icl.title) + '</summary><p>' + linked(EX.icl) + '</p></details>' +
+            (school('aeon').hidden ? '' : '<details><summary>' + esc(EX.aeon.title) + '</summary><p>' + linked(EX.aeon) + '</p></details>') +
           '</div>' : '');
     }
     function renderDays() {
@@ -405,13 +427,13 @@
           return '<button type="button" class="dayb" data-day="' + d + '" aria-pressed="' + on + '"' + (lock ? ' title="One of your classes meets on ' + DAY_FULL[d] + '"' : '') + '>' +
             '<span>' + d + '</span>' + (lock ? '<small>class</small>' : '') + '</button>';
         }).join('') + '</div>' +
-        '<div class="choices cols-2 tiers">' + card(5, 'Full-week membership', 'Standard plan') + card(2, 'Two-day membership', '') + '</div>' +
+        '<div class="choices cols-2 tiers">' + card(5, 'Full-Week Membership', 'Standard plan') + card(2, 'Two-Day Membership', '') + '</div>' +
         '<p class="extra-days">Need a third or fourth day? Add ' + money(M.prices[3] - M.prices[2]) + ' a day.' +
           (!pkg && (n === 3 || n === 4) ? ' <strong>Your plan: ' + membershipName(n).toLowerCase() + ', ' + money(membershipPrice(n)) + '/mo.</strong>' : '') + '</p>' +
         (pkg ? '<p class="note"><strong>' + esc(school(st.school).name) + ' includes the full-week membership, Monday through Friday.</strong></p>'
           : '<p class="note">Your days: <strong>' + st.days.map(function (d) { return DAY_FULL[d]; }).join(', ') + '</strong>. Tap a day to add or remove it. Two-day memberships meet Monday through Thursday.</p>') +
         (st.notice ? '<p class="rule" role="status">' + esc(st.notice) + '</p>' : '') +
-        (pkg ? '' : '<p class="note">Just want to try it? Drop-in days are $230, and a new family’s first drop-in day is free.</p>');
+        (pkg ? '' : '<p class="note">Just want to try it? Drop-in days are $230, and a new family\u2019s first drop-in day is free.</p>');
     }
     function toggle(id, on, a) {
       return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + (a.desc.indexOf('$') === -1 ? ' ' + money(a.price) + '/mo.' : '') + '</p></div>' +
@@ -420,7 +442,7 @@
     function stepper(id, value, max, a, label) {
       return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + '</p></div>' +
         '<div class="stepper" role="group" aria-label="' + esc(label) + '">' +
-          '<button type="button" data-dec="' + id + '" aria-label="Fewer"' + (value <= 0 ? ' disabled' : '') + '>−</button>' +
+          '<button type="button" data-dec="' + id + '" aria-label="Fewer"' + (value <= 0 ? ' disabled' : '') + '>\u2212</button>' +
           '<output aria-live="polite">' + value + '</output>' +
           '<button type="button" data-inc="' + id + '" aria-label="More"' + (value >= max ? ' disabled' : '') + '>+</button></div></div>';
     }
@@ -439,14 +461,15 @@
         (closeOK() ? toggle('close', st.close, A.close) : '') +
         stepper('coach', st.coach, A.coaching.max, A.coaching, 'Weekly hours of 1:1 coaching') +
         stepper('single', st.single, A.single.max, A.single, 'Single-subject classes');
+      renderClubs();
       var body = $('#sec-classes-body');
       if (!groupsOK()) {
-        body.innerHTML = '<p class="addon-desc">Small group classes are for grades ' + G.minGrade + '–' + G.maxGrade + '.' +
+        body.innerHTML = '<p class="addon-desc">Small group classes are for grades ' + G.minGrade + '\u2013' + G.maxGrade + '.' +
           (st.grade > G.maxGrade ? ' High schoolers can add ICL courses or 1:1 time below.' : '') + '</p>';
         return;
       }
       var cur = st.days.length, curPrice = membershipPrice(cur);
-      body.innerHTML = '<p class="addon-desc">Grades ' + G.minGrade + '–' + G.maxGrade + '. ' + esc(G.desc) + '</p><div class="classes">' + G.classes.map(function (c) {
+      body.innerHTML = '<p class="addon-desc">Grades ' + G.minGrade + '\u2013' + G.maxGrade + '. ' + esc(G.desc) + '</p><div class="classes">' + G.classes.map(function (c) {
         var on = st.classes.indexOf(c.id) !== -1, hit = on ? null : clash(c);
         var missing = c.days.filter(function (d) { return st.days.indexOf(d) === -1; });
         var flag = '';
@@ -461,6 +484,28 @@
         return '<label class="cls' + (hit ? ' off' : !on && missing.length ? ' needs' : '') + '"><input type="checkbox" id="rma-cls-' + c.id + '" data-cls="' + c.id + '"' + (on ? ' checked' : '') + (hit ? ' disabled' : '') + '>' +
           '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + ', with ' + esc(c.who) + '</small>' + flag + '</span></label>';
       }).join('') + '</div>' + (st.clsNotice && st.notice ? '<p class="rule cls-note" role="status">' + esc(st.notice) + '</p>' : '');
+    }
+    function dayFlag(days, on) {
+      var missing = days.filter(function (d) { return st.days.indexOf(d) === -1; }), cur = st.days.length;
+      if (on) return '<em class="fits">On your plan</em>';
+      if (!missing.length) return '<em class="fits">Fits your days</em>';
+      var bump = membershipPrice(Math.min(5, cur + missing.length)) - membershipPrice(cur);
+      return '<em class="adds">Adds ' + missing.map(function (d) { return DAY_FULL[d]; }).join(' and ') + ' to your membership' + (bump > 0 && !isPkg() ? ' (+' + money(bump) + '/mo)' : '') + '</em>';
+    }
+    function renderClubs() {
+      var list = CLUBS.filter(clubOK), wrap = $('#sec-clubs-wrap');
+      wrap.hidden = !CLUBS.length;
+      if (!list.length) { $('#sec-clubs-body').innerHTML = '<p class="addon-desc">Our daytime clubs are for grades K\u20138.</p>'; return; }
+      $('#sec-clubs-body').innerHTML = list.map(function (c) {
+        var on = st.clubs.indexOf(c.id) !== -1, terms = st.clubTerms[c.id] || [];
+        return '<div class="club-card' + (on ? ' on' : '') + '">' +
+          '<label class="cls club"><input type="checkbox" id="rma-club-' + c.id + '" data-club="' + c.id + '"' + (on ? ' checked' : '') + '>' +
+          '<span><strong>' + esc(c.name) + '</strong><small>' + esc(c.when) + '. ' + esc(c.desc) + '</small>' +
+          '<em class="incl">' + money(c.price) + ' for members. ' + esc(c.priceNote) + '.</em>' + dayFlag(c.days, on) + '</span></label>' +
+          (on ? '<div class="terms" role="group" aria-label="' + esc(c.name) + ' sessions">' + c.terms.map(function (t) {
+            return '<label class="toggle"><input type="checkbox" id="rma-term-' + c.id + '-' + t.id + '" data-term="' + t.id + '" data-term-club="' + c.id + '"' + (terms.indexOf(t.id) !== -1 ? ' checked' : '') + '><span><b>' + esc(t.label) + '</b>: ' + esc(t.dates) + '</span></label>';
+          }).join('') + '</div>' : '') + '</div>';
+      }).join('');
     }
     function renderIcl() {
       var wrap = $('#sec-icl-wrap'), jan = st.start === 'jan';
@@ -481,42 +526,43 @@
       var unit = jan ? ' for spring' : '/year';
       $('#sec-icl-picked').innerHTML =
         (st.grade !== null ? '<p class="note level-note">Showing ' + (st.grade <= 8 ? 'middle school' : 'high school') + ' courses for grade ' + st.grade + '.</p>' : '') +
-        (st.iclDropped && st.iclDropped.length ? '<p class="rule" role="status">We took ' + esc(st.iclDropped.join(' and ')) + ' off the plan, since ' + (st.iclDropped.length > 1 ? 'they’re ' : 'it’s a ') + (st.grade <= 8 ? 'high school' : 'middle school') + (st.iclDropped.length > 1 ? ' courses.' : ' course.') + '</p>' : '') +
-        (full ? '<p class="note">That’s the limit of three courses.</p>' : '') + st.icl.map(function (c, i) {
+        (st.iclDropped && st.iclDropped.length ? '<p class="rule" role="status">We took ' + esc(st.iclDropped.join(' and ')) + ' off the plan, since ' + (st.iclDropped.length > 1 ? 'they\u2019re ' : 'it\u2019s a ') + (st.grade <= 8 ? 'high school' : 'middle school') + (st.iclDropped.length > 1 ? ' courses.' : ' course.') + '</p>' : '') +
+        (full ? '<p class="note">That\u2019s the limit of three courses.</p>' : '') + st.icl.map(function (c, i) {
         return '<div class="picked-row"><span>' + esc(c.n) + '</span><span class="fmt">' +
           '<button type="button" data-fmt="' + i + '" data-live="1" aria-pressed="' + c.live + '">Live ' + money(jan ? IC.liveJan : IC.live) + unit + '</button>' +
           '<button type="button" data-fmt="' + i + '" data-live="0" aria-pressed="' + !c.live + '">Self-paced ' + money(jan ? IC.asyncJan : IC.async) + unit + '</button>' +
-          '<button type="button" class="rm" data-rm-icl="' + i + '" aria-label="Remove ' + esc(c.n) + '">×</button></span></div>';
-      }).join('') + (st.icl.length ? '<p class="note">ICL courses are paid in full before the student starts, together with the ' + (jan ? 'spring' : 'year') + '’s membership. Each course is about 45 minutes of live class a week (live courses) plus 3 to 4 hours of independent work, shown as estimates in the week.</p>' : '');
+          '<button type="button" class="rm" data-rm-icl="' + i + '" aria-label="Remove ' + esc(c.n) + '">\u00d7</button></span></div>';
+      }).join('') + (st.icl.length ? '<p class="note">ICL courses are paid in full before the student starts, together with the ' + (jan ? 'spring' : 'year') + '\u2019s membership. ' +
+        esc(st.icl.some(function (c) { return c.live; }) ? IC.liveText : IC.asyncText) + '</p>' : '');
     }
     function renderStart() {
       $('#sec-start').innerHTML = '<div class="choices cols-2">' + data.starts.map(function (s) {
         return '<button type="button" class="choice" data-start="' + s.id + '" aria-pressed="' + (st.start === s.id) + '"><strong>' + esc(s.label) + '</strong><small>' + esc(s.desc) + '</small></button>';
       }).join('') + '</div>' +
         (isUpfront() ? '<p class="note">Plans with ICL or Aeon are paid in full before the student starts' + (st.start === 'jan' ? ', for the spring semester' : '') + '.</p>' : '') +
-        '<p class="note">Wyoming ESA, discounts, and scholarships are in the price panel' + (window.innerWidth < 960 ? ' (tap “See the week”)' : '') + '.</p>' +
+
         (st.start === 'jan' ? '<p class="note">' + esc(st.esa ? data.esaJanYes : data.esaJanNo) + '</p>' : '');
     }
     function renderForm() {
       var F = st.form;
       if (st.sent) {
-        $('#sec-form').innerHTML = '<div class="sent"><p class="sent-h">Plan sent</p>' +
+        $('#sec-form').innerHTML = '<div class="sent"><p class="sent-h">Plan Sent</p>' +
           '<p>Check your inbox for a copy. The next step is a ' + esc(S.callLength) + ' intro call, so we can get to know your family and fine-tune the plan together.</p>' +
           '<a class="btn" target="_blank" rel="noopener" href="' + esc(S.bookingUrl) + '">Book your intro call</a>' +
-          '<p class="note">Not ready to book? We’ll reach out ' + esc(S.followUp) + '.</p></div>';
+          '<p class="note">Not ready to book? We\u2019ll reach out ' + esc(S.followUp) + '.</p></div>';
         return;
       }
       function field(name, label, type, ac, req) {
         return '<div class="f"><label for="rma-f-' + name + '">' + label + (req ? '' : ' <span class="opt-tag">(optional)</span>') + '</label>' +
           '<input id="rma-f-' + name + '" name="' + name + '" type="' + type + '" autocomplete="' + ac + '"' + (req ? ' required' : '') + ' value="' + esc(F[name] || '') + '"></div>';
       }
-      $('#sec-form').innerHTML = '<p class="hint">We’ll email you a copy of this plan and follow up ' + esc(S.followUp) + '. You can book your intro call right after.</p>' +
+      $('#sec-form').innerHTML = '<p class="hint">We\u2019ll email you a copy of this plan and follow up ' + esc(S.followUp) + '. You can book your intro call right after.</p>' +
         '<form novalidate><div class="grid">' +
           field('parentFirst', 'Your first name', 'text', 'given-name', true) +
           field('parentLast', 'Your last name', 'text', 'family-name', true) +
           field('email', 'Email', 'email', 'email', true) +
           field('phone', 'Mobile phone', 'tel', 'tel', true) +
-          field('studentFirst', 'Student’s first name', 'text', 'off', true) +
+          field('studentFirst', 'Student\u2019s first name', 'text', 'off', true) +
           field('current', 'Current school', 'text', 'off', false) +
           '<div class="f wide"><label for="rma-f-heard">How did you hear about us? <span class="opt-tag">(optional)</span></label><select id="rma-f-heard" name="heard"><option value="">Choose one</option>' +
             HEARD.map(function (h) { return '<option' + (F.heard === h ? ' selected' : '') + '>' + esc(h) + '</option>'; }).join('') + '</select></div>' +
@@ -541,7 +587,7 @@
         var blocks = sc.cal[d].map(function (b) {
           var top = (b.s - D0) * PX, ht = Math.max(10, (b.e - b.s) * PX - 1);
           return '<div class="blk ' + b.k + (b.est ? ' est' : '') + (ht < 22 ? ' tiny' : '') + '" style="top:' + top + 'px;height:' + ht + 'px" title="' +
-            esc(b.label + ', ' + clock(b.s) + '–' + clock(b.e) + (b.est ? ' (estimated)' : '')) + '"><span>' + esc(b.label) + '</span></div>';
+            esc(b.label + ', ' + clock(b.s) + '\u2013' + clock(b.e) + (b.est ? ' (estimated)' : '')) + '"><span>' + esc(b.label) + '</span></div>';
         }).join('');
         var marks = (sc.marks[d] || []).map(function (m) {
           return '<i class="mk" style="top:' + ((m - D0) * PX) + 'px" title="Coach check-in, ' + clock(m) + '"></i>';
@@ -556,14 +602,13 @@
       $('#sum-legend').innerHTML =
         '<ul class="legend">' +
           '<li><i class="sw coach"></i>Coach</li>' +
-          (groupsOK() && st.classes.length ? '<li><i class="sw cls"></i>RadAcad class</li>' : '') +
-          (st.coach || st.single ? '<li><i class="sw one"></i>1:1</li>' : '') +
-          (st.icl.length || isPkg() ? '<li><i class="sw icl"></i>' + (st.school === 'aeon' ? 'Aeon' : 'ICL') + '</li>' : '') +
-          '<li><i class="mk-sw"></i>' + (st.close ? 'Hourly check-in' : isMS() ? 'Check-in at each transition' : 'Midday check-in') + '</li>' +
+          '<li><i class="sw sw-class"></i>Class</li>' +
+          '<li><i class="sw club"></i>Club</li>' +
+          '<li><i class="sw icl"></i>ICL/Aeon</li>' +
           '<li><i class="sw est"></i>Estimated time</li>' +
         '</ul>' +
-        '<p class="cal-note">' + esc(DAY.note) + '</p>' +
-        (over.length ? '<p class="cal-note">Doesn’t fit on membership days, so done at home or on another day: ' + esc(over.join(', ')) + '.</p>' : '');
+        '<p class="cal-note">Dots are coach check-ins: ' + (st.close ? 'every hour with close support' : isMS() ? 'one at every transition for middle schoolers' : 'one midday for high schoolers') + '. ' + esc(DAY.note) + '</p>' +
+        (over.length ? '<p class="cal-note">Doesn\u2019t fit on membership days, so done at home or on another day: ' + esc(over.join(', ')) + '.</p>' : '');
     }
     function syncDisc() {
       $('#rma-esa').checked = st.esa;
@@ -573,9 +618,6 @@
       if (root.activeElement !== slider) slider.value = st.need || (SCH.need.min - SCH.need.step);
       $('#rma-need-out').textContent = st.need ? money(st.need) + ' a year' : 'None';
       slider.setAttribute('aria-valuetext', st.need ? money(st.need) + ' a year' : 'None');
-      $('#sum-apply').innerHTML = st.aid || st.need || st.merit
-        ? 'Discounts and scholarships go through the RadAcad Foundation: <a href="' + esc(S.foundationUrl) + '" target="_blank" rel="noopener">radacadfoundation.org/apply</a>' : '';
-      $('#sum-apply').hidden = !(st.aid || st.need || st.merit);
     }
     function fineLines(r) {
       var pkg = isPkg(), sc = school(st.school), F2 = data.fine, hasIcl = st.school.indexOf('icl') === 0 || st.icl.length, aeon = st.school === 'aeon';
@@ -586,8 +628,8 @@
         if (r.jan) out.push(F2.iclJan.replace('{deposit}', pkg && !aeon ? money(sc.deposit) : 'ICL'));
       }
       if (aeon) out.push(F2.aeon);
-      if (!r.up) out.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn’t a fit.');
-      if (st.classes.length) out.push('Classes on the same days share a membership day, so two Monday/Wednesday classes still fit a two-day membership.');
+      if (!r.up) out.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn\u2019t a fit.');
+      if (st.classes.length) { out.push(F2.groupSemester); out.push('Classes on the same days share a membership day, so two Monday/Wednesday classes still fit a two-day membership.'); }
       if (st.merit) out.push('The JHSC award is 50% off membership for first place and 25% for second, awarded annually by committee.');
       if (st.need) out.push('Need-based awards are set by the Foundation committee and can go toward membership, classes, 1:1, or an online school package.');
       if (!r.up) out.push('Prepay by the semester or the year for 5% off.');
@@ -597,28 +639,23 @@
       var r = compute();
       renderCal(); syncDisc();
       $('#sum-lines').innerHTML = r.lines.map(function (l) {
-        return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + money(l.amount) + l.unit + '</span></li>';
+        return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + (l.text ? esc(l.text) : money(l.amount) + l.unit) + '</span></li>';
       }).join('') +
-        (r.up ? '' : r.sem.map(function (l) { return '<li class="semline"><span>' + esc(l.label) + '</span><span>' + esc(l.text) + '</span></li>'; }).join('') +
-          (st.esa ? '<li class="sub"><span>Wyoming ESA</span><span>−' + money(S.esaAnnual) + '/yr</span></li>' : '') +
-          (st.need ? '<li class="sub"><span>Need-based scholarship, if awarded</span><span>−' + money(st.need) + '/yr</span></li>' : ''));
+        (r.up ? '' :
+          (st.esa ? '<li class="sub"><span>Wyoming ESA, ' + money(S.esaAnnual) + ' a year over ' + r.payments + ' payments</span><span>\u2212' + money(Math.min(S.esaAnnual, r.yearly) / r.payments) + '/mo</span></li>' : '') +
+          (st.need ? '<li class="sub"><span>Need-based scholarship, if awarded (' + money(st.need) + ' a year)</span><span>\u2212' + money(Math.min(st.need, Math.max(0, r.yearly - (st.esa ? S.esaAnnual : 0))) / r.payments) + '/mo</span></li>' : ''));
 
       if (r.up) {
         $('#sum-lbl').textContent = 'Total for the ' + r.period + ', paid before the student starts';
         $('#sum-big').textContent = money(r.total);
         $('.mb-num').textContent = money(r.total); $('.mb-per').textContent = r.jan ? ' spring' : '/yr';
-        $('#sum-esa').textContent = (r.total === 0 ? 'Fully covered. ' : '') +
-          (st.esa ? data.esaQuarterly : 'Includes the ' + (r.jan ? 'spring' : 'year') + '’s membership, since ICL and Aeon require it for the length of enrollment.');
+        $('#sum-esa').textContent = r.total === 0 ? 'Nothing out of pocket.' : 'Your part: ' + money(r.total) + ', paid before the student starts.';
       } else {
         var credName = st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'Wyoming ESA' : 'scholarship';
         $('#sum-lbl').textContent = 'Per month' + (r.credits ? ' with ' + credName : '') + ', ' + (r.jan ? 'five payments' : 'nine payments');
         $('#sum-big').textContent = money(r.monthlyAfter);
         $('.mb-num').textContent = money(r.monthlyAfter); $('.mb-per').textContent = '/mo';
-        var txt = r.credits
-          ? (r.after === 0 ? 'Fully covered. ' : '') + money(r.monthly) + '/mo before ' + (st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'ESA' : 'scholarship') + '. ' + money(r.creditTotal) + ' of your ' + money(r.yearly) + ' ' + r.period + ' is covered.'
-          : money(r.yearly) + ' for the ' + r.period + '.';
-        if (r.groupYear) txt += ' Class tuition: ' + (r.credits && r.tuitionAfter === 0 ? 'covered too.' : r.credits && r.tuitionAfter < r.groupYear ? money(r.tuitionAfter) + ' for the ' + r.period + ' after credits.' : money(r.semPer) + ' per semester.');
-        $('#sum-esa').textContent = txt;
+        $('#sum-esa').textContent = r.monthlyAfter === 0 ? 'Nothing out of pocket.' : 'Your part: ' + money(r.monthlyAfter) + ' a month, ' + (r.jan ? 'five' : 'nine') + ' payments.';
       }
       $('#sum-fine').innerHTML = '<li class="confirm">' + esc(S.finePrint) + '</li>' + fineLines(r).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
       $('#sum-cta').hidden = st.sent;
@@ -668,7 +705,7 @@
         track('plan_builder_path', { path: d.path }); started(); render(); return;
       }
       if ((d.tier || d.day) && isPkg()) {
-        st.notice = school(st.school).name + ' includes the full week, Monday through Friday. To pick different days, choose “Build your own” in step 2.';
+        st.notice = school(st.school).name + ' includes the full week, Monday through Friday. To pick different days, choose \u201cBuild your own\u201d in step 2.';
         render(); return;
       }
       st.preset = null;
@@ -687,6 +724,21 @@
     builder.addEventListener('change', function (e) {
       var t = e.target, d = t.dataset;
       if (d.toggle) { st.preset = null; st[d.toggle] = t.checked; }
+      else if (d.club) {
+        st.preset = null; st.notice = ''; st.clsNotice = false;
+        var cb = club(d.club);
+        if (t.checked) {
+          var addD = cb.days.filter(function (x) { return st.days.indexOf(x) === -1; });
+          if (addD.length && !isPkg()) { st.notice = 'We added ' + addD.map(function (x) { return DAY_FULL[x]; }).join(' and ') + ' to your membership for ' + cb.name + '.'; }
+          st.clubs = st.clubs.concat(d.club);
+          st.clubTerms[d.club] = cb.terms.map(function (x) { return x.id; }).filter(function (x) { return st.start !== 'jan' || true; });
+        } else { st.clubs = st.clubs.filter(function (x) { return x !== d.club; }); delete st.clubTerms[d.club]; }
+      }
+      else if (d.term) {
+        var tl = st.clubTerms[d.termClub] || [];
+        st.clubTerms[d.termClub] = t.checked ? tl.concat(d.term) : tl.filter(function (x) { return x !== d.term; });
+        if (!st.clubTerms[d.termClub].length) { st.clubs = st.clubs.filter(function (x) { return x !== d.termClub; }); delete st.clubTerms[d.termClub]; }
+      }
       else if (d.cls) {
         st.preset = null; st.notice = ''; st.clsNotice = false;
         if (t.checked) {
@@ -732,7 +784,7 @@
       err.textContent = '';
       form.querySelectorAll('.f.invalid').forEach(function (el) { el.classList.remove('invalid'); });
       if (st.grade === null) {
-        err.textContent = 'Pick your student’s grade at the top of the builder.';
+        err.textContent = 'Pick your student\u2019s grade at the top of the builder.';
         $('#h-grade').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
         return;
       }
@@ -768,16 +820,17 @@
           name: preset ? preset.name : isPkg() ? sc.name : membershipName(st.days.length) + ' plan',
           days: st.days,
           billing: r.up ? 'upfront' : 'monthly',
-          lines: r.lines.map(function (l) { return { label: l.label, amount: Math.round(l.amount), unit: l.unit }; }),
+          lines: r.lines.map(function (l) { return { label: l.label, amount: Math.round(l.amount), unit: l.text ? ' (' + l.text.toLowerCase() + ')' : l.unit }; }).concat(
+            st.clubs.map(function (id) { var c = club(id); return { label: c.name + ', ' + c.when + ': ' + (st.clubTerms[id] || []).map(function (t) { var x = c.terms.filter(function (y) { return y.id === t; })[0]; return x.label + ' (' + x.dates + ')'; }).join('; '), amount: 0, unit: ' (sessions)' }; })),
           monthly: r.up ? 0 : Math.round(r.monthly),
           total: r.up ? Math.round(r.total) : Math.round(r.monthlyAfter),
           totalLabel: r.up ? 'Total for the ' + r.period + ', paid before the student starts' : 'Per month' + (r.credits ? ' after ESA and scholarships' : '') + ', ' + (r.jan ? 'five' : 'nine') + ' payments',
-          classFees: r.up ? '' : r.sem.map(function (s) { return s.label + ': ' + s.text; }).join('; '),
+          classFees: '',
           esa: st.esa ? 'Wyoming ESA applied' : 'No ESA'
         }
       };
       var btn = form.querySelector('.submit');
-      btn.disabled = true; btn.textContent = 'Sending…';
+      btn.disabled = true; btn.textContent = 'Sending\u2026';
       var send = S.endpoint
         ? fetch(S.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
             .then(function (res) { return res.json(); })
@@ -791,7 +844,7 @@
       }).catch(function (error) {
         console.error('[plan builder]', error);
         btn.disabled = false; btn.textContent = 'Send my plan';
-        err.innerHTML = 'Your plan didn’t send. Check your connection and try again, or email <a href="mailto:' + esc(S.contactEmail) + '">' + esc(S.contactEmail) + '</a>.';
+        err.innerHTML = 'Your plan didn\u2019t send. Check your connection and try again, or email <a href="mailto:' + esc(S.contactEmail) + '">' + esc(S.contactEmail) + '</a>.';
       });
     });
 

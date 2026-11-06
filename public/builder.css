@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /* Radical Minds Academy: "Build your RadAcad week". Layout follows Garrett's mockup; styled to the Squarespace site.
    Brand: Mokoko (headings), Poppins (body); #a664ab purple, #259991 teal, #000, #fff; #0ce809 used once (the "on" dot in the week).
    Override from Squarespace, e.g.  #plan-builder { --rma-sticky-top: 140px; }  */
@@ -281,3 +282,25 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .cls.off { opacity: 0.55; cursor: not-allowed; }
 .cls.off input { cursor: not-allowed; }
 .cls em.clash { color: var(--muted); }
+
+/* ---------- round 5: week colors (no black), clubs, step 1 start ---------- */
+:host { --coach: #a664ab; --class: #1b6f69; --club: #259991; --partner: #d9fbd8; }
+.blk.coach, .blk.one { background: var(--coach); border-color: var(--coach); color: var(--white); }
+.blk.cls { background: var(--class); border-color: var(--class); color: var(--white); }
+.blk.club { background: var(--club); border-color: var(--club); color: var(--ink); }
+.blk.icl { background: var(--partner); border-color: #9fd99d; color: var(--ink); }
+.blk.est { border-style: dashed; border-width: 1.5px; }
+.blk.icl.est { border-color: #6dbf6a; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.5) 0 4px, transparent 4px 8px); }
+.mk { background: var(--coach); border: 1.5px solid var(--white); box-shadow: 0 0 0 1px var(--coach); }
+.sw.coach { background: var(--coach); } .sw.sw-class { background: var(--class); } .sw.club { background: var(--club); }
+.sw.icl { background: var(--partner); border: 1px solid #9fd99d; } .sw.est { border: 1.5px dashed var(--muted); }
+.sub-q { font-weight: 600; margin: 1.1rem 0 0.5rem; }
+.club-card { display: grid; gap: 0.5rem; }
+.club-card .terms { display: grid; gap: 0.4rem; padding: 0.2rem 0 0 2rem; }
+.club-card .terms .toggle { font-size: 0.88rem; align-items: flex-start; }
+.cls em.incl { color: var(--club); color: var(--teal-deep); }
+.cls.club:has(input:checked) { border-color: var(--club); background: var(--teal-tint); }
+.dg-link { color: inherit; text-decoration: underline; text-decoration-color: var(--purple); text-underline-offset: 3px; }
+.note.foundation { margin-top: 0.2rem; }
+.explain details p a, .explain-inline p a { color: var(--teal-deep); font-weight: 600; }
+.lines li.sub span:last-child { color: var(--teal-deep); }

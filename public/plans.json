@@ -66,24 +66,24 @@
   },
   "addOns": {
     "checkin": {
-      "name": "Weekly check-in session",
+      "name": "Weekly Check-In Session",
       "price": 325,
       "desc": "Thirty minutes a week with a coach to plan the week and look at what’s due."
     },
     "close": {
-      "name": "Close support",
+      "name": "Close Support",
       "price": 250,
       "desc": "Check-ins every hour on every membership day. For high schoolers who need more structure.",
       "minGrade": 9
     },
     "coaching": {
-      "name": "1:1 coaching",
+      "name": "1:1 Coaching",
       "price": 650,
       "max": 5,
       "desc": "One hour a week with a coach or tutor, in any subject. $650/mo per weekly hour."
     },
     "single": {
-      "name": "Individual single-subject class",
+      "name": "Individual Single-Subject Class",
       "price": 1950,
       "max": 4,
       "desc": "A full course taught 1:1, three hours a week. $1,950/mo each.",
@@ -118,7 +118,8 @@
             "08:30",
             "10:00"
           ]
-        ]
+        ],
+        "type": "class"
       },
       {
         "id": "science",
@@ -141,7 +142,8 @@
             "10:15",
             "11:45"
           ]
-        ]
+        ],
+        "type": "class"
       },
       {
         "id": "spanish",
@@ -164,7 +166,8 @@
             "12:30",
             "14:00"
           ]
-        ]
+        ],
+        "type": "class"
       },
       {
         "id": "math",
@@ -187,7 +190,8 @@
             "10:15",
             "11:45"
           ]
-        ]
+        ],
+        "type": "class"
       },
       {
         "id": "pe",
@@ -210,7 +214,8 @@
             "12:30",
             "14:00"
           ]
-        ]
+        ],
+        "type": "class"
       },
       {
         "id": "club",
@@ -233,10 +238,11 @@
             "14:00",
             "15:30"
           ]
-        ]
+        ],
+        "type": "club"
       }
     ],
-    "minGrade": 6,
+    "minGrade": 5,
     "maxGrade": 8
   },
   "iclAlaCarte": {
@@ -257,7 +263,9 @@
     "liveMin": 45,
     "workMin": 210,
     "liveJan": 1125,
-    "asyncJan": 850
+    "asyncJan": 850,
+    "liveText": "Live courses meet with an ICL teacher for about 45 minutes a week, plus 3 to 4 hours of independent work, shown as estimates in the week.",
+    "asyncText": "Self-paced courses have no live class. Students do about 3 to 4 hours of independent work a week per course, shown as estimates in the week."
   },
   "aid": [
     {
@@ -851,7 +859,7 @@
   "presets": [
     {
       "id": "full",
-      "name": "Full-week membership",
+      "name": "Full-Week Membership",
       "built": "Full week",
       "set": {
         "days": 5
@@ -859,13 +867,13 @@
     },
     {
       "id": "two",
-      "name": "Two-day membership",
+      "name": "Two-Day Membership",
       "built": "Up to two days a week",
       "set": {}
     },
     {
       "id": "online-checkin",
-      "name": "Online school check-in",
+      "name": "Online School Check-In",
       "built": "Two-day membership + weekly 30-minute check-in",
       "set": {
         "checkin": true
@@ -873,7 +881,7 @@
     },
     {
       "id": "online-coaching",
-      "name": "Online school coaching",
+      "name": "Online School Coaching",
       "built": "Two-day membership + 1 hr coaching",
       "set": {
         "coach": 1
@@ -881,7 +889,7 @@
     },
     {
       "id": "one-class",
-      "name": "One small group class",
+      "name": "One Small Group Class",
       "built": "Two-day membership + English (Mon & Wed)",
       "set": {
         "classes": [
@@ -889,13 +897,13 @@
         ]
       },
       "grades": [
-        6,
+        5,
         8
       ]
     },
     {
       "id": "full-coaching",
-      "name": "Full week + coaching",
+      "name": "Full Week + Coaching",
       "built": "Full week + 2 hrs coaching",
       "set": {
         "days": 5,
@@ -904,7 +912,7 @@
     },
     {
       "id": "icl-live",
-      "name": "Full week + ICL live",
+      "name": "Full Week + ICL Live",
       "built": "Full week + ICL Academy live classes",
       "set": {
         "school": "icl-live"
@@ -912,7 +920,7 @@
     },
     {
       "id": "icl-async",
-      "name": "Full week + ICL self-paced",
+      "name": "Full Week + ICL Self-Paced",
       "built": "Full week + ICL Academy self-paced",
       "set": {
         "school": "icl-async"
@@ -920,7 +928,7 @@
     },
     {
       "id": "ms-mix",
-      "name": "Middle school mix",
+      "name": "Middle School Mix",
       "built": "Full week + 3 ICL live courses + 2 small group classes",
       "set": {
         "days": 5,
@@ -944,13 +952,13 @@
         ]
       },
       "grades": [
-        6,
+        5,
         8
       ]
     },
     {
       "id": "two-singles",
-      "name": "Full week + two single-subject classes",
+      "name": "Full Week + Two Single-Subject Classes",
       "built": "Full week + 2 single-subject classes",
       "set": {
         "days": 5,
@@ -959,7 +967,7 @@
     },
     {
       "id": "aeon",
-      "name": "Full week + Aeon School",
+      "name": "Full Week + Aeon School",
       "built": "Full week + Aeon School",
       "set": {
         "school": "aeon"
@@ -982,17 +990,21 @@
   },
   "explain": {
     "icl": {
-      "title": "What is ICL Academy?",
-      "body": "ICL Academy is an accredited online school and a RadAcad partner. It follows a traditional, independent model: students take full online courses with ICL teachers and do their coursework here at RadAcad, with a coach keeping them on track. Families can enroll full time through RadAcad, or add up to three ICL courses to their own plan."
+      "title": "What Is ICL Academy?",
+      "body": "ICL Academy is an accredited online school and a RadAcad partner. It follows a traditional, independent model: students take full online courses with ICL teachers and do their coursework here at RadAcad, with a coach keeping them on track. Families can enroll full time through RadAcad, or add up to three ICL courses to their own plan.",
+      "url": "https://www.iclacademy.org/",
+      "link": "ICL Academy"
     },
     "aeon": {
-      "title": "What is Aeon School?",
-      "body": "Aeon is a project-based, mastery-focused online school and a RadAcad partner. It runs seminar-style classes that emphasize deep learning, critical thinking, and interdisciplinary work, and it’s aimed at students headed for selective colleges. Students take Aeon classes here, with daily structure and in-person guidance from RadAcad."
+      "title": "What Is Aeon School?",
+      "body": "Aeon is a project-based, mastery-focused online school and a RadAcad partner. It runs seminar-style classes that emphasize deep learning, critical thinking, and interdisciplinary work, and it’s aimed at students headed for selective colleges. Students take Aeon classes here, with daily structure and in-person guidance from RadAcad.",
+      "url": "https://aeonschool.org/",
+      "link": "Aeon"
     }
   },
   "scholarships": {
     "merit": {
-      "title": "Ski & Snowboard Club merit scholarship",
+      "title": "Ski & Snowboard Club Merit Scholarship",
       "desc": "for active Jackson Hole Ski & Snowboard Club members, awarded annually.",
       "options": [
         25,
@@ -1000,7 +1012,7 @@
       ]
     },
     "need": {
-      "title": "Need-based scholarship",
+      "title": "Need-Based Scholarship",
       "desc": "for families who need more than the automatic discounts, awarded by the RadAcad Foundation committee. Slide to an estimated yearly amount.",
       "min": 2000,
       "max": 15000,
@@ -1018,7 +1030,44 @@
     "fullYearMember": "Your membership runs for the full year of {school} enrollment.",
     "icl": "ICL tuition is paid in full before the student starts. A student who leaves mid-year owes the semester they attended. A January ICL start is a spring-semester commitment.",
     "iclJan": "January 2027 families can withdraw by January 31 for a full refund minus a non-refundable {deposit} deposit.",
-    "aeon": "Aeon tuition is paid in full before the student starts and is non-refundable once the student has started."
+    "aeon": "Aeon tuition is paid in full before the student starts and is non-refundable once the student has started.",
+    "groupSemester": "Small group classes are a semester commitment."
   },
-  "esaQuarterly": "ESA funds release quarterly ($1,750 a quarter), so you pay up front and use ESA through the year."
+  "esaQuarterly": "ESA funds release quarterly ($1,750 a quarter), so you pay up front and use ESA through the year.",
+  "clubs": [
+    {
+      "id": "robotics",
+      "name": "Robotics Club",
+      "short": "Robotics",
+      "type": "club",
+      "minGrade": 0,
+      "maxGrade": 8,
+      "when": "Wednesdays, 2:00–3:30",
+      "days": [
+        "Wed"
+      ],
+      "sessionsTime": [
+        [
+          "Wed",
+          "14:00",
+          "15:30"
+        ]
+      ],
+      "price": 0,
+      "priceNote": "Included with membership",
+      "desc": "A daytime robotics club, once a week. Sign up for each session separately.",
+      "terms": [
+        {
+          "id": "winter",
+          "label": "Winter session",
+          "dates": "Week of Jan 4 through the week of Mar 15"
+        },
+        {
+          "id": "spring",
+          "label": "Spring session",
+          "dates": "Week of Apr 5 through the week of Jun 7"
+        }
+      ]
+    }
+  ]
 }
