@@ -77,8 +77,8 @@ Edit `public/plans.json`, then `git add . && git commit -m "Update" && git push`
 - ICL and Aeon explainers link to iclacademy.org and aeonschool.org (`explain.*.url`). The JHSC title and the Foundation line link to radacadfoundation.org/apply; the Foundation line is always visible.
 
 ## Final round (Garrett, Nov 10)
-- **Check-in and coaching are one stepper** (`addOns.coaching`): 30-minute weekly blocks at $325/mo each, up to 10. One block shows as "Weekly check-in session (30 min a week)"; two or more show as "1:1 time with a coach (X hr a week)". The old separate check-in checkbox is gone. Example plans use blocks (Online School Check-In = 1 block, Online School Coaching = 2, Full Week + Coaching = 4).
-- **Younger students:** "Tell us about your family" opens a short inline form (parent name, email, phone, student name, age/grade, note). It goes to the same Apps Script with `type: "younger"` / `billing: "request"`, so the email reads "Younger student request" and shows no price table.
+- **Check-in and coaching are two add-ons with the same control** (`addOns.checkin`, `addOns.coaching`): both are steppers in 30-minute weekly blocks at $325/mo each. Check-in goes up to 2 blocks (1 hr), coaching up to 10 (5 hr). Example plans: Online School Check-In = 1 check-in block, Online School Coaching = 2 coaching blocks, Full Week + Coaching = 4 coaching blocks.
+- **Younger students:** the "Tell us about your younger student" button (outlined purple pill) opens a short inline form (parent name, email, phone, student name, age/grade, note). It goes to the same Apps Script with `type: "younger"` / `billing: "request"`, so the email reads "Younger student request" and shows no price table.
 - Single-subject description updated; PE is with Shawn.
 - Header: the "Your Family Your Plan" heading and the lede are gone; the title is centered. On Squarespace, delete the "Your Family Your Plan" heading block above the code block too.
 - Step 1 and step 3 hints removed. "Start From an Example or Online School Partner Package" is the default and sits on the left.

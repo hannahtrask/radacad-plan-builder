@@ -82,7 +82,7 @@
     }
     function startOf(id) { return data.starts.filter(function (s) { return s.id === id; })[0]; }
 
-    var BLANK = { school: 'own', days: ['Mon', 'Wed'], close: false, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
+    var BLANK = { school: 'own', days: ['Mon', 'Wed'], close: false, checkin: 0, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
     var CLUBS = data.clubs || [];
     function club(id) { return CLUBS.filter(function (c) { return c.id === id; })[0]; }
     var st = Object.assign(JSON.parse(JSON.stringify(BLANK)), {
@@ -154,11 +154,12 @@
     function isUpfront() { return isPkg() || st.icl.length > 0; }
     function schoolWord() { return st.school === 'aeon' ? 'Aeon' : 'ICL'; }
     function iclPrice(c, jan) { return c.live ? (jan ? IC.liveJan : IC.live) : (jan ? IC.asyncJan : IC.async); }
-    function coachText(n) {
+    function blockText(n) {
       var m = n * A.coaching.blockMin, h = Math.floor(m / 60), r = m % 60;
       return (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : '') + ' a week';
     }
-    function coachLabel(n) { return n === 1 ? 'Weekly check-in session (30 min a week)' : '1:1 time with a coach (' + coachText(n) + ')'; }
+    function checkinLabel(n) { return 'Weekly check-in (' + blockText(n) + ')'; }
+    function coachLabel(n) { return '1:1 coaching (' + blockText(n) + ')'; }
     function clubLines() {
       return st.clubs.map(function (id) {
         var c = club(id), terms = (st.clubTerms[id] || []).map(function (t) { return c.terms.filter(function (x) { return x.id === t; })[0].label.replace(' session', ''); });
@@ -182,6 +183,7 @@
         else addY(membershipName(n) + ' for the ' + period + ' (' + st.days.join(', ') + ')', memMonthly * P);
         st.icl.forEach(function (c) { addY('ICL ' + c.n + (c.live ? ', live' : ', self-paced') + (jan ? ' (spring)' : ' (full year)'), iclPrice(c, jan)); });
         if (st.close) addY(A.close.name + ' for the ' + period, A.close.price * P);
+        if (st.checkin) addY(checkinLabel(st.checkin) + ' for the ' + period, A.checkin.blockPrice * st.checkin * P);
         if (st.coach) addY(coachLabel(st.coach) + ' for the ' + period, A.coaching.blockPrice * st.coach * P);
         if (st.single) addY(st.single + ' single-subject class' + (st.single > 1 ? 'es' : '') + ' for the ' + period, A.single.price * st.single * P);
         st.classes.forEach(function (id) { addY(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), fall ? G.fallFee + G.springFee : G.springFee); });
@@ -203,6 +205,7 @@
       if (st.aid) add('Income-based discount on membership (' + st.aid + '%)', -memMonthly * st.aid / 100, 'sub');
       if (st.merit) add('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
       if (st.close) add(A.close.name, A.close.price);
+      if (st.checkin) add(checkinLabel(st.checkin), A.checkin.blockPrice * st.checkin);
       if (st.coach) add(coachLabel(st.coach), A.coaching.blockPrice * st.coach);
       if (st.single) add(st.single + ' single-subject class' + (st.single > 1 ? 'es' : ''), A.single.price * st.single);
       // small group tuition spread evenly over the payments, so the monthly number stays flat
@@ -254,8 +257,8 @@
       /* flexible items, spread through the week and the day */
       var items = [];
       for (var i = 0; i < st.single; i++) for (var j = 0; j < A.single.sessions; j++) items.push({ dur: A.single.sessionMin, label: 'Single-subject class', k: 'cls', group: 's' + i });
-      if (st.coach === 1) items.push({ dur: 30, label: 'Weekly check-in', k: 'coach', group: 'w' });
-      else for (var c2 = 0; c2 < st.coach; c2 += 2) items.push({ dur: st.coach - c2 >= 2 ? 60 : 30, label: '1:1 coaching', k: 'one', group: 'c' });
+      if (st.checkin) items.push({ dur: st.checkin * A.coaching.blockMin, label: 'Weekly check-in', k: 'coach', group: 'w' });
+      for (var c2 = 0; c2 < st.coach; c2 += 2) items.push({ dur: st.coach - c2 >= 2 ? 60 : 30, label: '1:1 coaching', k: 'one', group: 'c' });
       st.icl.forEach(function (c, i) {
         if (c.live) items.push({ dur: IC.liveMin, label: 'ICL ' + c.n + ' live', k: 'icl', group: 'i' + i });
         [60, 60, 45, 45].forEach(function (m) { items.push({ dur: m, label: 'ICL ' + c.n, k: 'icl', group: 'i' + i }); });
@@ -364,7 +367,7 @@
       $('#sec-grade').innerHTML = '<div class="choices grades">' + S.grades.map(function (g) {
         return '<button type="button" class="choice" data-grade="' + g + '" aria-pressed="' + (st.grade === +g) + '"><strong>' + g + '</strong></button>';
       }).join('') + '</div>' +
-        '<p class="note">' + esc(Y.text) + ' <button type="button" class="link inline-link" data-younger aria-expanded="' + !!st.younger + '">' + esc(Y.link) + '</button>.</p>' +
+        '<div class="younger-cta"><p class="note">' + esc(Y.text) + '</p><button type="button" class="btn-out" data-younger aria-expanded="' + !!st.younger + '">' + esc(Y.link) + ' <span aria-hidden="true">' + (st.younger ? '\u2212' : '\u2192') + '</span></button></div>' +
         (st.younger ? renderYounger() : '') +
         (st.grade !== null ? '<p class="note">' + (isMS()
           ? 'Middle schoolers set goals with a coach each morning, get a check-in at every transition, and finish with a final check-in.'
@@ -458,6 +461,11 @@
       return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + (a.desc.indexOf('$') === -1 ? ' ' + money(a.price) + '/mo.' : '') + '</p></div>' +
         '<label class="toggle"><input type="checkbox" id="rma-' + id + '" data-toggle="' + id + '"' + (on ? ' checked' : '') + '><span>Add</span></label></div>';
     }
+    function blockStepper(id) {
+      var a = id === 'checkin' ? A.checkin : A.coaching, n = st[id];
+      return stepper(id, n, a.maxBlocks, a, a.name + ', 30-minute blocks',
+        n ? blockText(n) + ', ' + money(a.blockPrice * n) + '/mo' : money(a.blockPrice) + '/mo per 30-minute block');
+    }
     function stepper(id, value, max, a, label, meta) {
       return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + '</p>' + (meta ? '<p class="addon-meta">' + esc(meta) + '</p>' : '') + '</div>' +
         '<div class="stepper" role="group" aria-label="' + esc(label) + '">' +
@@ -477,8 +485,7 @@
     function renderAddons() {
       $('#sec-addons').innerHTML =
         (closeOK() ? toggle('close', st.close, A.close) : '') +
-        stepper('coach', st.coach, A.coaching.maxBlocks, A.coaching, 'Weekly 30-minute blocks with a coach',
-          st.coach ? coachText(st.coach) + ', ' + money(A.coaching.blockPrice * st.coach) + '/mo' : 'None yet') +
+        blockStepper('checkin') + blockStepper('coach') +
         stepper('single', st.single, A.single.max, A.single, 'Single-subject classes', money(A.single.price) + '/mo each');
       renderClubs();
       var body = $('#sec-classes-body');
@@ -762,7 +769,7 @@
       st.preset = null;
       if (d.tier) setDayCount(+d.tier);
       else if (d.day) toggleDay(d.day);
-      else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.maxBlocks : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
+      else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.maxBlocks : d.inc === 'checkin' ? A.checkin.maxBlocks : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
       else if (d.dec) { if (st[d.dec] > 0) st[d.dec]--; }
       else if (d.dept) st.dept = d.dept;
       else if (d.addIcl) { if (st.icl.length < IC.max) st.icl.push({ n: d.addIcl, live: true }); }

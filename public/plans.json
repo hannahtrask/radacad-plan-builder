@@ -71,12 +71,19 @@
       "desc": "Check-ins every hour on every membership day. For high schoolers who need more structure.",
       "minGrade": 9
     },
+    "checkin": {
+      "name": "Weekly Check-In",
+      "blockPrice": 325,
+      "blockMin": 30,
+      "maxBlocks": 2,
+      "desc": "A weekly session with a coach to plan the week, review what’s due, and keep online school or independent work on track. Add 30-minute blocks."
+    },
     "coaching": {
-      "name": "1:1 Time With a Coach",
+      "name": "1:1 Coaching or Tutoring",
       "blockPrice": 325,
       "blockMin": 30,
       "maxBlocks": 10,
-      "desc": "Add time with a coach or tutor in 30-minute blocks, $325 a month per weekly block. One block is a weekly check-in to plan the week and review what’s due. Add more for coaching or tutoring in any subject."
+      "desc": "Time with a coach or tutor in any subject. Add 30-minute blocks."
     },
     "single": {
       "name": "Individual Single-Subject Class",
@@ -871,7 +878,7 @@
       "name": "Online School Check-In",
       "built": "Two-day membership + a weekly 30-minute check-in",
       "set": {
-        "coach": 1
+        "checkin": 1
       }
     },
     {
@@ -1017,7 +1024,7 @@
   "addHint": "1:1 coaching and single-subject classes are month to month. Small group classes run by the semester. ICL courses are a full-year commitment.",
   "youngerNote": {
     "text": "Have a younger student? We build custom 1:1 plans for kids below 5th grade.",
-    "link": "Tell us about your family"
+    "link": "Tell us about your younger student"
   },
   "fine": {
     "monthToMonth": "Membership is month to month with 30 days’ notice.",

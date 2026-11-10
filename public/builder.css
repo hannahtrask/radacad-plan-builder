@@ -315,3 +315,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .younger .hint { margin: 0; }
 .younger .btn { justify-self: start; }
 .sent-y .sent-h { font-size: 1.3rem; }
+.younger-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin-top: 0.5rem; }
+.younger-cta .note { margin: 0; }
+.btn-out { font: inherit; font-weight: 600; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.4rem; min-height: 40px; padding: 0.45rem 1.1rem;
+  border-radius: 999px; cursor: pointer; background: var(--white); color: var(--purple-deep); border: 2px solid var(--purple); transition: background-color .15s, color .15s; }
+.btn-out:hover, .btn-out[aria-expanded="true"] { background: var(--purple); color: var(--white); }
+.btn-out:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
