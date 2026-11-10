@@ -90,7 +90,10 @@ function doPost(e) {
 
 function sendStaffEmail_(d, total) {
   var p = d.parent, s = d.student, a = d.answers || {};
-  var subject = 'New plan: ' + p.first + ' ' + p.last + ' (' + s.first + (s.grade ? ', grade ' + s.grade : '') + ') ' + money_(total) + unit_(d.plan);
+  var isReq = d.plan && d.plan.billing === 'request';
+  var subject = isReq
+    ? 'Younger student request: ' + p.first + ' ' + p.last + ' (' + s.first + (s.grade ? ', ' + s.grade : '') + ')'
+    : 'New plan: ' + p.first + ' ' + p.last + ' (' + s.first + (s.grade ? ', grade ' + s.grade : '') + ') ' + money_(total) + unit_(d.plan);
   var rows = [
     ['Parent', p.first + ' ' + p.last],
     ['Email', p.email],
@@ -143,16 +146,20 @@ function sendFamilyEmail_(d, total) {
     to: p.email,
     replyTo: CONFIG.REPLY_TO,
     name: CONFIG.FROM_NAME,
-    subject: 'Your RadAcad plan for ' + s.first,
+    subject: (d.plan && d.plan.billing === 'request' ? 'We got your note about ' : 'Your RadAcad plan for ') + s.first,
     htmlBody: html,
     body: 'Hi ' + p.first + ', thanks for building a plan for ' + s.first + '. ' +
           'Your plan: ' + d.plan.name + '. Total: ' + money_(total) + unit_(d.plan) + '. Book your intro call: ' + CONFIG.BOOKING_URL
   });
 }
 
-function unit_(plan) { return plan && plan.billing === 'upfront' ? ' paid up front' : '/mo'; }
+function unit_(plan) { return plan && plan.billing === 'upfront' ? ' paid up front' : plan && plan.billing === 'request' ? '' : '/mo'; }
 
 function planTable_(plan, total) {
+  if (plan.billing === 'request') {
+    return '<p style="margin:8px 0">Custom 1:1 plan request for a student below 5th grade. ' + esc_((plan.lines[0] || {}).label || '') + '.</p>' +
+      '<p style="margin:4px 0 0;font-size:14px;color:#555">We’ll reach out to talk through options and pricing.</p>';
+  }
   var rows = (plan.lines || []).map(function (l) { return [l.label, l.amount, l.unit == null ? '/mo' : l.unit]; });
   return '<table cellpadding="8" style="border-collapse:collapse;width:100%;max-width:520px;border:1px solid #ddd">' +
     rows.map(function (r) {

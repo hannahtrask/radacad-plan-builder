@@ -62,14 +62,9 @@
       "4": 950,
       "5": 1200
     },
-    "dayNote": "Pick the days your student will be here. Membership is priced by how many days you choose: up to two days is $350, each extra day adds $300, and the full week is $1,200."
+    "dayNote": ""
   },
   "addOns": {
-    "checkin": {
-      "name": "Weekly Check-In Session",
-      "price": 325,
-      "desc": "Thirty minutes a week with a coach to plan the week and look at what’s due."
-    },
     "close": {
       "name": "Close Support",
       "price": 250,
@@ -77,16 +72,17 @@
       "minGrade": 9
     },
     "coaching": {
-      "name": "1:1 Coaching",
-      "price": 650,
-      "max": 5,
-      "desc": "One hour a week with a coach or tutor, in any subject. $650/mo per weekly hour."
+      "name": "1:1 Time With a Coach",
+      "blockPrice": 325,
+      "blockMin": 30,
+      "maxBlocks": 10,
+      "desc": "Add time with a coach or tutor in 30-minute blocks, $325 a month per weekly block. One block is a weekly check-in to plan the week and review what’s due. Add more for coaching or tutoring in any subject."
     },
     "single": {
       "name": "Individual Single-Subject Class",
       "price": 1950,
       "max": 4,
-      "desc": "A full course taught 1:1, three hours a week. $1,950/mo each.",
+      "desc": "A full course for credit, designed around you. Pick a subject we don’t offer in a small group, or build the course from scratch with a RadAcad educator: students have earned English credit for an internship at a law firm, designed their own science and pre-calculus courses, and earned math credit for designing and completing their own assessments. Three hours a week with your educator on your membership days.",
       "sessionMin": 60,
       "sessions": 3
     }
@@ -197,7 +193,7 @@
         "id": "pe",
         "name": "PE at the Rec Center",
         "short": "PE",
-        "who": "Garrett",
+        "who": "Shawn",
         "when": "Tue & Thu, 12:30–2:00",
         "days": [
           "Tue",
@@ -854,7 +850,6 @@
       "ms": false
     }
   ],
-  "esaJanYes": "Families who applied over the summer can use those funds for a January start.",
   "esaJanNo": "Starting in January without ESA? This year’s application window has closed, but we’ll help you apply for next year.",
   "presets": [
     {
@@ -874,17 +869,17 @@
     {
       "id": "online-checkin",
       "name": "Online School Check-In",
-      "built": "Two-day membership + weekly 30-minute check-in",
+      "built": "Two-day membership + a weekly 30-minute check-in",
       "set": {
-        "checkin": true
+        "coach": 1
       }
     },
     {
       "id": "online-coaching",
       "name": "Online School Coaching",
-      "built": "Two-day membership + 1 hr coaching",
+      "built": "Two-day membership + 1 hr a week of 1:1 coaching",
       "set": {
-        "coach": 1
+        "coach": 2
       }
     },
     {
@@ -904,10 +899,10 @@
     {
       "id": "full-coaching",
       "name": "Full Week + Coaching",
-      "built": "Full week + 2 hrs coaching",
+      "built": "Full week + 2 hrs a week of 1:1 coaching",
       "set": {
         "days": 5,
-        "coach": 2
+        "coach": 4
       }
     },
     {
@@ -1022,8 +1017,7 @@
   "addHint": "1:1 coaching and single-subject classes are month to month. Small group classes run by the semester. ICL courses are a full-year commitment.",
   "youngerNote": {
     "text": "Have a younger student? We build custom 1:1 plans for kids below 5th grade.",
-    "link": "Tell us about your family here",
-    "href": "/getstarted"
+    "link": "Tell us about your family"
   },
   "fine": {
     "monthToMonth": "Membership is month to month with 30 days’ notice.",

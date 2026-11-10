@@ -73,5 +73,13 @@ Edit `public/plans.json`, then `git add . && git commit -m "Update" && git push`
 - **Clubs** (`clubs` in `plans.json`): Robotics Club, grades K–8, Wednesdays 2:00–3:30, $0 for members, Winter and Spring sessions as separate checkboxes. Picking it adds Wednesday to the membership if needed. Non-member pricing lives on the website club page, not here. Community Club stays a small group class but uses `"type": "club"` so it shows in the club color.
 - Week colors: coach (goals, check-ins, weekly plan, 1:1 coaching) #a664ab; RadAcad classes (small group and single-subject) #1b6f69; clubs #259991; ICL/Aeon #d9fbd8. No black.
 - Purple total block shows only what the family pays: "Your part: $X a month, nine payments" / "Your part: $X, paid before the student starts" / "Nothing out of pocket."
-- Package cards show one number, after ESA and discounts: "$13,700, paid yearly" (January: "$3,350 for spring, paid yearly").
+- Package cards show one number, after ESA and discounts: "$13,700, paid yearly" (January: "$3,350 for the spring, paid before the student starts").
 - ICL and Aeon explainers link to iclacademy.org and aeonschool.org (`explain.*.url`). The JHSC title and the Foundation line link to radacadfoundation.org/apply; the Foundation line is always visible.
+
+## Final round (Garrett, Nov 10)
+- **Check-in and coaching are one stepper** (`addOns.coaching`): 30-minute weekly blocks at $325/mo each, up to 10. One block shows as "Weekly check-in session (30 min a week)"; two or more show as "1:1 time with a coach (X hr a week)". The old separate check-in checkbox is gone. Example plans use blocks (Online School Check-In = 1 block, Online School Coaching = 2, Full Week + Coaching = 4).
+- **Younger students:** "Tell us about your family" opens a short inline form (parent name, email, phone, student name, age/grade, note). It goes to the same Apps Script with `type: "younger"` / `billing: "request"`, so the email reads "Younger student request" and shows no price table.
+- Single-subject description updated; PE is with Shawn.
+- Header: the "Your Family Your Plan" heading and the lede are gone; the title is centered. On Squarespace, delete the "Your Family Your Plan" heading block above the code block too.
+- Step 1 and step 3 hints removed. "Start From an Example or Online School Partner Package" is the default and sits on the left.
+- January: package cards read "$X for the spring, paid before the student starts". The "Families who applied over the summer…" line is gone; the no-ESA note stays.

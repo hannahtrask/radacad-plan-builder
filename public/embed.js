@@ -82,12 +82,12 @@
     }
     function startOf(id) { return data.starts.filter(function (s) { return s.id === id; })[0]; }
 
-    var BLANK = { school: 'own', days: ['Mon', 'Wed'], checkin: false, close: false, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
+    var BLANK = { school: 'own', days: ['Mon', 'Wed'], close: false, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
     var CLUBS = data.clubs || [];
     function club(id) { return CLUBS.filter(function (c) { return c.id === id; })[0]; }
     var st = Object.assign(JSON.parse(JSON.stringify(BLANK)), {
       grade: null, start: 'fall', esa: true, aid: 0, merit: 0, need: 0,
-      path: 'own', preset: null, notice: '', dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
+      path: 'example', preset: null, notice: '', dept: 'All', q: '', form: {}, sent: false, sheet: false, started: false
     });
 
     /* ---------- rules ---------- */
@@ -154,6 +154,11 @@
     function isUpfront() { return isPkg() || st.icl.length > 0; }
     function schoolWord() { return st.school === 'aeon' ? 'Aeon' : 'ICL'; }
     function iclPrice(c, jan) { return c.live ? (jan ? IC.liveJan : IC.live) : (jan ? IC.asyncJan : IC.async); }
+    function coachText(n) {
+      var m = n * A.coaching.blockMin, h = Math.floor(m / 60), r = m % 60;
+      return (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : '') + ' a week';
+    }
+    function coachLabel(n) { return n === 1 ? 'Weekly check-in session (30 min a week)' : '1:1 time with a coach (' + coachText(n) + ')'; }
     function clubLines() {
       return st.clubs.map(function (id) {
         var c = club(id), terms = (st.clubTerms[id] || []).map(function (t) { return c.terms.filter(function (x) { return x.id === t; })[0].label.replace(' session', ''); });
@@ -176,9 +181,8 @@
         if (pkg) addY(sc.name + (jan ? ', spring semester' : ', full year') + ' (includes full-week membership)', jan ? sc.janPrice : sc.yearly);
         else addY(membershipName(n) + ' for the ' + period + ' (' + st.days.join(', ') + ')', memMonthly * P);
         st.icl.forEach(function (c) { addY('ICL ' + c.n + (c.live ? ', live' : ', self-paced') + (jan ? ' (spring)' : ' (full year)'), iclPrice(c, jan)); });
-        if (st.checkin) addY(A.checkin.name + ' for the ' + period, A.checkin.price * P);
         if (st.close) addY(A.close.name + ' for the ' + period, A.close.price * P);
-        if (st.coach) addY(st.coach + ' hr/week of 1:1 coaching for the ' + period, A.coaching.price * st.coach * P);
+        if (st.coach) addY(coachLabel(st.coach) + ' for the ' + period, A.coaching.blockPrice * st.coach * P);
         if (st.single) addY(st.single + ' single-subject class' + (st.single > 1 ? 'es' : '') + ' for the ' + period, A.single.price * st.single * P);
         st.classes.forEach(function (id) { addY(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), fall ? G.fallFee + G.springFee : G.springFee); });
         clubLines().forEach(function (l) { lines.push(l); });
@@ -198,9 +202,8 @@
       add(membershipName(n) + ' (' + st.days.join(', ') + ')', memMonthly);
       if (st.aid) add('Income-based discount on membership (' + st.aid + '%)', -memMonthly * st.aid / 100, 'sub');
       if (st.merit) add('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
-      if (st.checkin) add(A.checkin.name, A.checkin.price);
       if (st.close) add(A.close.name, A.close.price);
-      if (st.coach) add(st.coach + ' hr/week of 1:1 coaching', A.coaching.price * st.coach);
+      if (st.coach) add(coachLabel(st.coach), A.coaching.blockPrice * st.coach);
       if (st.single) add(st.single + ' single-subject class' + (st.single > 1 ? 'es' : ''), A.single.price * st.single);
       // small group tuition spread evenly over the payments, so the monthly number stays flat
       st.classes.forEach(function (id) { add(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), (fall ? G.fallFee + G.springFee : G.springFee) / P); });
@@ -251,12 +254,12 @@
       /* flexible items, spread through the week and the day */
       var items = [];
       for (var i = 0; i < st.single; i++) for (var j = 0; j < A.single.sessions; j++) items.push({ dur: A.single.sessionMin, label: 'Single-subject class', k: 'cls', group: 's' + i });
-      for (var c2 = 0; c2 < st.coach; c2++) items.push({ dur: 60, label: '1:1 coaching', k: 'one', group: 'c' });
+      if (st.coach === 1) items.push({ dur: 30, label: 'Weekly check-in', k: 'coach', group: 'w' });
+      else for (var c2 = 0; c2 < st.coach; c2 += 2) items.push({ dur: st.coach - c2 >= 2 ? 60 : 30, label: '1:1 coaching', k: 'one', group: 'c' });
       st.icl.forEach(function (c, i) {
         if (c.live) items.push({ dur: IC.liveMin, label: 'ICL ' + c.n + ' live', k: 'icl', group: 'i' + i });
         [60, 60, 45, 45].forEach(function (m) { items.push({ dur: m, label: 'ICL ' + c.n, k: 'icl', group: 'i' + i }); });
       });
-      if (st.checkin) items.push({ dur: 30, label: 'Weekly plan', k: 'coach', group: 'w' });
       var dayPtr = 0, prefPtr = 0, lastDay = {};
       items.forEach(function (it) {
         var placed = false;
@@ -293,21 +296,20 @@
     app.innerHTML =
       '<header class="intro">' +
         '<p class="tagline">Build Your RadAcad Week</p>' +
-        '<p class="lede">Every student starts with a membership. Start from an example plan or build your own, and watch the week and the price fill in.</p>' +
       '</header>' +
       '<div class="layout">' +
         '<div class="builder">' +
           '<section class="step" aria-labelledby="h-grade"><h3 id="h-grade"><span class="num">1</span>What Grade Is Your Student In, and When Would They Start?</h3>' +
-            '<p class="hint">RadAcad serves grades 5\u201312. Grade and start date shape your student\u2019s day, which classes they can join, and every price on this page.</p><div id="sec-grade"></div>' +
+            '<div id="sec-grade"></div>' +
             '<p class="sub-q">When would they start?</p><div id="sec-start"></div></section>' +
           '<section class="step" aria-labelledby="h-path"><h3 id="h-path"><span class="num">2</span>Start From an Example, or Build Your Own</h3>' +
             '<div class="path" role="group" aria-label="How to start">' +
-              '<button type="button" class="path-b" data-path="own"><strong>Build Your Own</strong><small>Pick days and add what your student needs</small></button>' +
               '<button type="button" class="path-b" data-path="example"><strong>Start From an Example or Online School Partner Package</strong><small>Our example plans, plus ICL Academy and Aeon School packages</small></button>' +
+              '<button type="button" class="path-b" data-path="own"><strong>Build Your Own</strong><small>Pick days and add what your student needs</small></button>' +
             '</div>' +
             '<div id="sec-path"></div></section>' +
           '<section class="step" aria-labelledby="h-days"><h3 id="h-days"><span class="num">3</span>Which Days?</h3>' +
-            '<p class="hint">' + esc(M.dayNote) + '</p><div id="sec-days"></div></section>' +
+            '<div id="sec-days"></div></section>' +
           '<section class="step" aria-labelledby="h-add"><h3 id="h-add"><span class="num">4</span>Add What Your Student Needs</h3>' +
             '<p class="hint">' + esc(data.addHint) + ' ' + esc(G.scheduleNote) + '</p>' +
             '<div id="sec-addons"></div>' +
@@ -362,11 +364,28 @@
       $('#sec-grade').innerHTML = '<div class="choices grades">' + S.grades.map(function (g) {
         return '<button type="button" class="choice" data-grade="' + g + '" aria-pressed="' + (st.grade === +g) + '"><strong>' + g + '</strong></button>';
       }).join('') + '</div>' +
-        '<p class="note">' + esc(Y.text) + ' <a href="' + esc(Y.href) + '">' + esc(Y.link) + '</a>.</p>' +
+        '<p class="note">' + esc(Y.text) + ' <button type="button" class="link inline-link" data-younger aria-expanded="' + !!st.younger + '">' + esc(Y.link) + '</button>.</p>' +
+        (st.younger ? renderYounger() : '') +
         (st.grade !== null ? '<p class="note">' + (isMS()
           ? 'Middle schoolers set goals with a coach each morning, get a check-in at every transition, and finish with a final check-in.'
           : 'High schoolers set goals with a coach each morning, get a midday check-in, and finish with a final check-in. Close support adds hourly check-ins.') +
           (groupsOK() ? ' Small group classes are open to grades ' + G.minGrade + '\u2013' + G.maxGrade + '.' : '') + '</p>' : '');
+    }
+    function renderYounger() {
+      var F = st.yform || {};
+      if (st.youngerSent) return '<div class="younger sent-y"><p class="sent-h">Thanks! We Got It</p><p>We\u2019ll email you a copy and reach out ' + esc(S.followUp) + ' to talk about a custom 1:1 plan.</p></div>';
+      function f(name, label, type, req, ac) {
+        return '<div class="f"><label for="rma-y-' + name + '">' + label + (req ? '' : ' <span class="opt-tag">(optional)</span>') + '</label>' +
+          '<input id="rma-y-' + name + '" name="' + name + '" type="' + type + '"' + (ac ? ' autocomplete="' + ac + '"' : '') + (req ? ' required' : '') + ' value="' + esc(F[name] || '') + '"></div>';
+      }
+      return '<form class="younger" novalidate data-younger-form><p class="younger-h">Tell Us About Your Younger Student</p>' +
+        '<p class="hint">We build custom 1:1 plans for students below 5th grade. Share a little about your family and we\u2019ll be in touch.</p>' +
+        '<div class="grid">' + f('parentFirst', 'Your first name', 'text', true, 'given-name') + f('parentLast', 'Your last name', 'text', true, 'family-name') +
+          f('email', 'Email', 'email', true, 'email') + f('phone', 'Mobile phone', 'tel', true, 'tel') +
+          f('studentFirst', 'Student\u2019s first name', 'text', true, 'off') + f('age', 'Student\u2019s age or grade', 'text', true, 'off') +
+          '<div class="f wide"><label for="rma-y-notes">What are you looking for? <span class="opt-tag">(optional)</span></label><textarea id="rma-y-notes" name="notes" rows="3" placeholder="Days, subjects, learning needs, how your student is doing now">' + esc(F.notes || '') + '</textarea></div>' +
+        '</div><div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label></div>' +
+        '<p class="form-error" role="alert"></p><button type="submit" class="btn">Send to RadAcad</button></form>';
     }
     function presetOK(p) { return !p.grades || st.grade === null || (st.grade >= p.grades[0] && st.grade <= p.grades[1]); }
     function applyPreset(id, quiet) {
@@ -389,7 +408,7 @@
       var jan = st.start === 'jan';
       return '<button type="button" class="preset' + (sc ? ' pkg' : '') + '" data-preset="' + p.id + '" aria-pressed="' + on + '">' +
         '<strong>' + esc(p.name) + '</strong><small>' + esc(p.built) + '</small>' +
-        '<span class="pp">' + (sc ? (r.total === 0 ? 'Fully covered' : money(r.total) + (jan ? ' for spring' : '') + ', paid yearly') : priceText(r)) + '</span></button>';
+        '<span class="pp">' + (sc ? (r.total === 0 ? 'Fully covered' : money(r.total) + (jan ? ' for the spring, paid before the student starts' : ', paid yearly')) : priceText(r)) + '</span></button>';
     }
     function renderPath() {
       app.querySelectorAll('[data-path]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.path === st.path)); });
@@ -439,8 +458,8 @@
       return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + (a.desc.indexOf('$') === -1 ? ' ' + money(a.price) + '/mo.' : '') + '</p></div>' +
         '<label class="toggle"><input type="checkbox" id="rma-' + id + '" data-toggle="' + id + '"' + (on ? ' checked' : '') + '><span>Add</span></label></div>';
     }
-    function stepper(id, value, max, a, label) {
-      return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + '</p></div>' +
+    function stepper(id, value, max, a, label, meta) {
+      return '<div class="addon"><div><p class="addon-title">' + esc(a.name) + '</p><p class="addon-desc">' + esc(a.desc) + '</p>' + (meta ? '<p class="addon-meta">' + esc(meta) + '</p>' : '') + '</div>' +
         '<div class="stepper" role="group" aria-label="' + esc(label) + '">' +
           '<button type="button" data-dec="' + id + '" aria-label="Fewer"' + (value <= 0 ? ' disabled' : '') + '>\u2212</button>' +
           '<output aria-live="polite">' + value + '</output>' +
@@ -457,10 +476,10 @@
     }
     function renderAddons() {
       $('#sec-addons').innerHTML =
-        toggle('checkin', st.checkin, A.checkin) +
         (closeOK() ? toggle('close', st.close, A.close) : '') +
-        stepper('coach', st.coach, A.coaching.max, A.coaching, 'Weekly hours of 1:1 coaching') +
-        stepper('single', st.single, A.single.max, A.single, 'Single-subject classes');
+        stepper('coach', st.coach, A.coaching.maxBlocks, A.coaching, 'Weekly 30-minute blocks with a coach',
+          st.coach ? coachText(st.coach) + ', ' + money(A.coaching.blockPrice * st.coach) + '/mo' : 'None yet') +
+        stepper('single', st.single, A.single.max, A.single, 'Single-subject classes', money(A.single.price) + '/mo each');
       renderClubs();
       var body = $('#sec-classes-body');
       if (!groupsOK()) {
@@ -541,7 +560,7 @@
       }).join('') + '</div>' +
         (isUpfront() ? '<p class="note">Plans with ICL or Aeon are paid in full before the student starts' + (st.start === 'jan' ? ', for the spring semester' : '') + '.</p>' : '') +
 
-        (st.start === 'jan' ? '<p class="note">' + esc(st.esa ? data.esaJanYes : data.esaJanNo) + '</p>' : '');
+        (st.start === 'jan' && !st.esa ? '<p class="note">' + esc(data.esaJanNo) + '</p>' : '');
     }
     function renderForm() {
       var F = st.form;
@@ -690,9 +709,41 @@
 
     /* ---------- events ---------- */
     var builder = $('.builder');
+    builder.addEventListener('input', function (e) {
+      var f = e.target.closest('[data-younger-form]');
+      if (f && e.target.name) { st.yform = st.yform || {}; st.yform[e.target.name] = e.target.value; }
+    });
+    builder.addEventListener('submit', function (e) {
+      var form = e.target.closest('[data-younger-form]'); if (!form) return;
+      e.preventDefault();
+      var err = form.querySelector('.form-error'), bad = [];
+      err.textContent = '';
+      form.querySelectorAll('.f.invalid').forEach(function (el) { el.classList.remove('invalid'); });
+      form.querySelectorAll('[required]').forEach(function (el) { if (!el.value.trim() || !el.checkValidity()) { bad.push(el); el.closest('.f').classList.add('invalid'); } });
+      if (bad.length) { err.textContent = bad.length === 1 ? 'Fill in the highlighted field to send.' : 'Fill in the ' + bad.length + ' highlighted fields to send.'; bad[0].focus(); return; }
+      var F = {}; new FormData(form).forEach(function (v, k) { F[k] = String(v).trim(); });
+      var payload = {
+        company: F.company || '', page: location.href, type: 'younger',
+        parent: { first: F.parentFirst, last: F.parentLast, email: F.email, phone: F.phone },
+        student: { first: F.studentFirst, grade: F.age },
+        start: startOf(st.start).label, heard: '', notes: F.notes || '',
+        answers: { coursework: 'Younger student (below 5th grade)', days: '', needs: [], suggested: '' },
+        plan: { name: 'Custom 1:1 plan request (below 5th grade)', days: [], billing: 'request',
+          lines: [{ label: 'Custom 1:1 plan for a younger student, age/grade: ' + F.age, amount: 0, unit: ' (to be quoted)' }],
+          monthly: 0, total: 0, totalLabel: 'Pricing to be set together', classFees: '', esa: '' }
+      };
+      var btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Sending\u2026';
+      var send = S.endpoint
+        ? fetch(S.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+            .then(function (res) { return res.json(); }).then(function (res) { if (!res || !res.ok) throw new Error('Send failed'); })
+        : new Promise(function (resolve) { console.info('[plan builder] Preview mode: younger-student request not sent.', payload); setTimeout(resolve, 500); });
+      send.then(function () { st.youngerSent = true; track('plan_builder_younger_submit'); render(); })
+        .catch(function () { btn.disabled = false; btn.textContent = 'Send to RadAcad'; err.innerHTML = 'That didn\u2019t send. Try again, or email <a href="mailto:' + esc(S.contactEmail) + '">' + esc(S.contactEmail) + '</a>.'; });
+    });
     builder.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b || b.disabled || b.type === 'submit') return;
       var d = b.dataset;
+      if (b.hasAttribute('data-younger')) { st.younger = !st.younger; render(); if (st.younger) { var y = root.getElementById ? root.getElementById('rma-y-parentFirst') : null; if (y) y.focus(); } return; }
       if (d.grade) {
         st.grade = +d.grade; st.iclDropped = null; track('plan_builder_grade', { grade: st.grade });
         started(); render(); return;
@@ -711,7 +762,7 @@
       st.preset = null;
       if (d.tier) setDayCount(+d.tier);
       else if (d.day) toggleDay(d.day);
-      else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.max : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
+      else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.maxBlocks : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
       else if (d.dec) { if (st[d.dec] > 0) st[d.dec]--; }
       else if (d.dept) st.dept = d.dept;
       else if (d.addIcl) { if (st.icl.length < IC.max) st.icl.push({ n: d.addIcl, live: true }); }

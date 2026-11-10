@@ -304,3 +304,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .note.foundation { margin-top: 0.2rem; }
 .explain details p a, .explain-inline p a { color: var(--teal-deep); font-weight: 600; }
 .lines li.sub span:last-child { color: var(--teal-deep); }
+
+/* ---------- final round ---------- */
+.intro { margin-left: auto; margin-right: auto; text-align: center; }
+.intro .tagline { margin-bottom: 0.25rem; }
+.addon-meta { font-size: 0.85rem; font-weight: 600; color: var(--teal-deep); margin-top: 0.2rem; }
+.inline-link { font-size: inherit; font-weight: 600; padding: 0; }
+.younger { margin-top: 0.75rem; border: 1.5px solid var(--purple); border-radius: 16px; padding: 1rem 1.1rem; background: var(--purple-tint); display: grid; gap: 0.6rem; }
+.younger-h { font-family: var(--heading); font-weight: 600; font-size: 1.15rem; }
+.younger .hint { margin: 0; }
+.younger .btn { justify-self: start; }
+.sent-y .sent-h { font-size: 1.3rem; }
