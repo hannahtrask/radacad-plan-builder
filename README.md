@@ -47,7 +47,7 @@ Squarespace's GA4 integration loads `gtag`, so these events fire automatically: 
 
 ## Pricing rules (Garrett, Nov 4)
 - **Monthly plans** (no ICL or Aeon): membership by days picked (1–2 days $350, 3 $650, 4 $950, 5 $1,200; two-day plans are Mon–Thu), add-ons monthly, small group classes billed per semester ($1,250 fall, $1,800 spring). Headline = per month after ESA and need-based scholarship.
-- **Up-front plans** (any ICL package, Aeon, or à la carte ICL course): one yearly total, paid before the student starts. Packages: ICL live $20,700, ICL self-paced $17,550, Aeon $27,300 (each includes the full-week membership). À la carte: $2,250 live / $1,700 self-paced per course, plus the year's membership. January: ICL is one semester at half price ($10,350 / $8,775; courses $1,125 / $850), Aeon is $22,500. Add-ons are shown as yearly totals. January deposits $900 live / $600 self-paced.
+- **ICL/Aeon plans** (any ICL package, Aeon, or à la carte ICL course) are priced for the year, then shown monthly: the yearly price ÷ the same payments as membership (9 for September, 5 for January). Packages: ICL live $20,700, ICL self-paced $17,550, Aeon $27,300 (each includes the full-week membership). À la carte: $2,250 live / $1,700 self-paced per course, plus membership. January: ICL is one semester at half price ($10,350 / $8,775; courses $1,125 / $850), Aeon is $22,500. How each family actually pays is settled at contract time, not in the builder.
 - Discounts: income-based 10%/20% and JHSC merit 25%/50% apply to the membership portion only (the $1,200/mo inside packages). Need-based slider $2,000–$15,000/yr and Wyoming ESA $7,000/yr come off the whole plan.
 - Fine print switches to "Your membership runs for the full year of ICL/Aeon enrollment" plus the ICL or Aeon tuition terms whenever ICL or Aeon is on the plan.
 - The word "fees" isn't used anywhere; it's "tuition."
@@ -72,14 +72,22 @@ Edit `public/plans.json`, then `git add . && git commit -m "Update" && git push`
 - Small group classes: grades 5–8 (`smallGroup.minGrade`). On monthly plans each class is a flat monthly line: (fall $1,250 + spring $1,800) ÷ 9, or spring ÷ 5 for January. Fine print adds "Small group classes are a semester commitment."
 - **Clubs** (`clubs` in `plans.json`): Robotics Club, grades K–8, Wednesdays 2:00–3:30, $0 for members, Winter and Spring sessions as separate checkboxes. Picking it adds Wednesday to the membership if needed. Non-member pricing lives on the website club page, not here. Community Club stays a small group class but uses `"type": "club"` so it shows in the club color.
 - Week colors: coach (goals, check-ins, weekly plan, 1:1 coaching) #a664ab; RadAcad classes (small group and single-subject) #1b6f69; clubs #259991; ICL/Aeon #d9fbd8. No black.
-- Purple total block shows only what the family pays: "Your part: $X a month, nine payments" / "Your part: $X, paid before the student starts" / "Nothing out of pocket."
-- Package cards show one number, after ESA and discounts: "$13,700, paid yearly" (January: "$3,350 for the spring, paid before the student starts").
+- Purple total block shows only what the family pays, always monthly: "Your part: $X a month, nine payments" / "Nothing out of pocket."
+- Package cards show one monthly number, after ESA and discounts (for example "$1,522/mo").
 - ICL and Aeon explainers link to iclacademy.org and aeonschool.org (`explain.*.url`). The JHSC title and the Foundation line link to radacadfoundation.org/apply; the Foundation line is always visible.
 
 ## Final round (Garrett, Nov 10)
-- **Check-in and coaching are two add-ons with the same control** (`addOns.checkin`, `addOns.coaching`): both are steppers in 30-minute weekly blocks at $325/mo each. Check-in goes up to 2 blocks (1 hr), coaching up to 10 (5 hr). Example plans: Online School Check-In = 1 check-in block, Online School Coaching = 2 coaching blocks, Full Week + Coaching = 4 coaching blocks.
+- **1:1 Coaching or Tutoring is one add-on** (`addOns.coaching`): a stepper in 30-minute weekly blocks at $325/mo each, up to 10 blocks (5 hr a week). It covers both weekly check-ins and tutoring. Example plans: Online School Check-In = 1 block, Online School Coaching = 2, Full Week + Coaching = 4.
 - **Younger students:** the "Tell us about your younger student" button (outlined purple pill) opens a short inline form (parent name, email, phone, student name, age/grade, note). It goes to the same Apps Script with `type: "younger"` / `billing: "request"`, so the email reads "Younger student request" and shows no price table.
 - Single-subject description updated; PE is with Shawn.
 - Header: the "Your Family Your Plan" heading and the lede are gone; the title is centered. On Squarespace, delete the "Your Family Your Plan" heading block above the code block too.
 - Step 1 and step 3 hints removed. "Start From an Example or Online School Partner Package" is the default and sits on the left.
-- January: package cards read "$X for the spring, paid before the student starts". The "Families who applied over the summer…" line is gone; the no-ESA note stays.
+- January: the "Families who applied over the summer…" line is gone; the no-ESA note stays.
+
+
+## Round 7 (Garrett, Nov 14)
+- Check-in and coaching combined into one add-on, 1:1 Coaching or Tutoring, capped at 10 blocks.
+- Every plan is monthly, including ICL/Aeon packages and ICL courses (yearly price ÷ payments). All "paid in full before the student starts" notes and fine print are gone; the ESA line no longer says "you pay up front."
+- The step 4 paragraph ("1:1 coaching and single-subject classes are month to month…") is removed. The spring schedule note moved into the Small Group Classes description.
+- Partner School Packages sit in their own light-green box (`.pkg-group`) with green cards in the ICL/Aeon week color, so they read separately from RadAcad's own example plans.
+- Parent copy of the plan: already handled by `sendFamilyEmail_` in `apps-script/Code.gs`. It starts sending once the Apps Script is deployed and its URL is set as `settings.endpoint` in `plans.json`.

@@ -321,3 +321,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
   border-radius: 999px; cursor: pointer; background: var(--white); color: var(--purple-deep); border: 2px solid var(--purple); transition: background-color .15s, color .15s; }
 .btn-out:hover, .btn-out[aria-expanded="true"] { background: var(--purple); color: var(--white); }
 .btn-out:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+/* Partner school packages: their own tinted group, in the ICL/Aeon green from the week */
+.pkg-group { margin-top: 1rem; padding: 0.9rem 1rem 1rem; border-radius: 18px; background: #f1fdf0; border: 1.5px solid #b9e8b7; }
+.pkg-group .group-h { margin-top: 0; color: var(--teal-deep); }
+.pkg-group .preset { background: var(--partner); border-color: #a9dca7; }
+.pkg-group .preset:hover { border-color: var(--teal-deep); }
+.pkg-group .preset[aria-pressed="true"] { background: var(--partner); border-color: var(--purple); box-shadow: inset 0 0 0 2px var(--purple); }
+.pkg-group .explain details { background: var(--white); }

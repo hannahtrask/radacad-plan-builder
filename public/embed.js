@@ -82,7 +82,7 @@
     }
     function startOf(id) { return data.starts.filter(function (s) { return s.id === id; })[0]; }
 
-    var BLANK = { school: 'own', days: ['Mon', 'Wed'], close: false, checkin: 0, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
+    var BLANK = { school: 'own', days: ['Mon', 'Wed'], close: false, coach: 0, single: 0, classes: [], icl: [], clubs: [], clubTerms: {} };
     var CLUBS = data.clubs || [];
     function club(id) { return CLUBS.filter(function (c) { return c.id === id; })[0]; }
     var st = Object.assign(JSON.parse(JSON.stringify(BLANK)), {
@@ -151,15 +151,14 @@
     /* ---------- pricing ---------- */
     // Plans with ICL or Aeon (a package, or any \u00e0 la carte ICL course) are one yearly price, paid up front.
     // Everything else is monthly, with small group classes billed by the semester.
-    function isUpfront() { return isPkg() || st.icl.length > 0; }
+    function isYearCommit() { return isPkg() || st.icl.length > 0; }
     function schoolWord() { return st.school === 'aeon' ? 'Aeon' : 'ICL'; }
     function iclPrice(c, jan) { return c.live ? (jan ? IC.liveJan : IC.live) : (jan ? IC.asyncJan : IC.async); }
     function blockText(n) {
       var m = n * A.coaching.blockMin, h = Math.floor(m / 60), r = m % 60;
       return (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : '') + ' a week';
     }
-    function checkinLabel(n) { return 'Weekly check-in (' + blockText(n) + ')'; }
-    function coachLabel(n) { return '1:1 coaching (' + blockText(n) + ')'; }
+    function coachLabel(n) { return '1:1 coaching or tutoring (' + blockText(n) + ')'; }
     function clubLines() {
       return st.clubs.map(function (id) {
         var c = club(id), terms = (st.clubTerms[id] || []).map(function (t) { return c.terms.filter(function (x) { return x.id === t; })[0].label.replace(' session', ''); });
@@ -168,7 +167,7 @@
     }
     function compute() {
       var sc = school(st.school), start = startOf(st.start), pkg = isPkg(), n = st.days.length;
-      var P = start.payments, jan = st.start === 'jan', fall = !jan, up = isUpfront();
+      var P = start.payments, jan = st.start === 'jan', fall = !jan;
       var period = jan ? 'spring' : 'school year';
       var memMonthly = pkg ? sc.membershipMonthly : membershipPrice(n);
       var pct = Math.min(st.aid + st.merit, 100);
@@ -176,36 +175,15 @@
       var groupYear = st.classes.length * (fall ? G.fallFee + G.springFee : G.springFee);
       var groupSem = st.classes.length * (fall ? G.fallFee : G.springFee);
 
-      if (up) {
-        var lines = [], sum = 0;
-        function addY(label, amount, k) { lines.push({ label: label, amount: amount, cls: k || '', unit: '' }); sum += amount; }
-        if (pkg) addY(sc.name + (jan ? ', spring semester' : ', full year') + ' (includes full-week membership)', jan ? sc.janPrice : sc.yearly);
-        else addY(membershipName(n) + ' for the ' + period + ' (' + st.days.join(', ') + ')', memMonthly * P);
-        st.icl.forEach(function (c) { addY('ICL ' + c.n + (c.live ? ', live' : ', self-paced') + (jan ? ' (spring)' : ' (full year)'), iclPrice(c, jan)); });
-        if (st.close) addY(A.close.name + ' for the ' + period, A.close.price * P);
-        if (st.checkin) addY(checkinLabel(st.checkin) + ' for the ' + period, A.checkin.blockPrice * st.checkin * P);
-        if (st.coach) addY(coachLabel(st.coach) + ' for the ' + period, A.coaching.blockPrice * st.coach * P);
-        if (st.single) addY(st.single + ' single-subject class' + (st.single > 1 ? 'es' : '') + ' for the ' + period, A.single.price * st.single * P);
-        st.classes.forEach(function (id) { addY(cls(id).name + (fall ? ' (fall and spring)' : ' (spring)'), fall ? G.fallFee + G.springFee : G.springFee); });
-        clubLines().forEach(function (l) { lines.push(l); });
-        var gross = sum;
-        if (st.aid) addY('Income-based discount on membership (' + st.aid + '%)', -memMonthly * P * st.aid / 100, 'sub');
-        if (st.merit) addY('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * P * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
-        var afterDisc = sum;
-        var esaAmt = st.esa ? Math.min(S.esaAnnual, Math.max(0, afterDisc)) : 0;
-        if (esaAmt) addY('Wyoming ESA', -esaAmt, 'sub');
-        var needAmt = st.need ? Math.min(st.need, Math.max(0, afterDisc - esaAmt)) : 0;
-        if (st.need) addY('Need-based scholarship, if awarded', -needAmt, 'sub');
-        return { up: true, lines: lines, total: Math.max(0, sum), gross: gross, beforeCredits: afterDisc, credits: credits, period: period, jan: jan, payments: P, memMonthly: memMonthly };
-      }
-
       var mlines = [], monthly = 0;
       function add(label, amount, k) { mlines.push({ label: label, amount: amount, cls: k || '', unit: '/mo' }); monthly += amount; }
-      add(membershipName(n) + ' (' + st.days.join(', ') + ')', memMonthly);
+      // ICL/Aeon packages and ICL courses are priced for the year (or spring), spread over the same payments as membership
+      if (pkg) add(sc.name + ' (includes full-week membership)', (jan ? sc.janPrice : sc.yearly) / P);
+      else add(membershipName(n) + ' (' + st.days.join(', ') + ')', memMonthly);
       if (st.aid) add('Income-based discount on membership (' + st.aid + '%)', -memMonthly * st.aid / 100, 'sub');
       if (st.merit) add('JHSC merit scholarship, if awarded (' + st.merit + '%)', -memMonthly * Math.min(st.merit, 100 - st.aid) / 100, 'sub');
       if (st.close) add(A.close.name, A.close.price);
-      if (st.checkin) add(checkinLabel(st.checkin), A.checkin.blockPrice * st.checkin);
+      st.icl.forEach(function (c) { add('ICL ' + c.n + (c.live ? ', live' : ', self-paced'), iclPrice(c, jan) / P); });
       if (st.coach) add(coachLabel(st.coach), A.coaching.blockPrice * st.coach);
       if (st.single) add(st.single + ' single-subject class' + (st.single > 1 ? 'es' : ''), A.single.price * st.single);
       // small group tuition spread evenly over the payments, so the monthly number stays flat
@@ -214,7 +192,7 @@
       var yearly = monthly * P;
       var creditTotal = Math.min(credits, yearly);
       var monthlyAfter = Math.max(0, monthly - credits / P);
-      return { up: false, lines: mlines, monthly: monthly, monthlyAfter: monthlyAfter, groupYear: groupYear,
+      return { lines: mlines, monthly: monthly, monthlyAfter: monthlyAfter, groupYear: groupYear,
         yearly: yearly, credits: credits, creditTotal: creditTotal, after: Math.max(0, yearly - creditTotal), payments: P, period: period, jan: jan, memMonthly: memMonthly };
     }
 
@@ -257,7 +235,6 @@
       /* flexible items, spread through the week and the day */
       var items = [];
       for (var i = 0; i < st.single; i++) for (var j = 0; j < A.single.sessions; j++) items.push({ dur: A.single.sessionMin, label: 'Single-subject class', k: 'cls', group: 's' + i });
-      if (st.checkin) items.push({ dur: st.checkin * A.coaching.blockMin, label: 'Weekly check-in', k: 'coach', group: 'w' });
       for (var c2 = 0; c2 < st.coach; c2 += 2) items.push({ dur: st.coach - c2 >= 2 ? 60 : 30, label: '1:1 coaching', k: 'one', group: 'c' });
       st.icl.forEach(function (c, i) {
         if (c.live) items.push({ dur: IC.liveMin, label: 'ICL ' + c.n + ' live', k: 'icl', group: 'i' + i });
@@ -314,7 +291,6 @@
           '<section class="step" aria-labelledby="h-days"><h3 id="h-days"><span class="num">3</span>Which Days?</h3>' +
             '<div id="sec-days"></div></section>' +
           '<section class="step" aria-labelledby="h-add"><h3 id="h-add"><span class="num">4</span>Add What Your Student Needs</h3>' +
-            '<p class="hint">' + esc(data.addHint) + ' ' + esc(G.scheduleNote) + '</p>' +
             '<div id="sec-addons"></div>' +
             '<div class="addon block" id="sec-classes-wrap"><p class="addon-title">Small Group Classes</p><div id="sec-classes-body"></div></div>' +
             '<div class="addon block" id="sec-clubs-wrap"><p class="addon-title">Clubs</p><div id="sec-clubs-body"></div></div>' +
@@ -356,7 +332,6 @@
 
     var $ = function (s) { return app.querySelector(s); };
     function priceText(r) {
-      if (r.up) return money(r.total) + ' for the ' + r.period;
       if (r.monthlyAfter === 0 && r.credits) return 'Fully covered';
       return money(r.monthlyAfter) + '/mo';
     }
@@ -408,10 +383,9 @@
     }
     function presetCard(p) {
       var r = priceFor(p.id), on = st.preset === p.id, sc = p.set.school && school(p.set.school);
-      var jan = st.start === 'jan';
       return '<button type="button" class="preset' + (sc ? ' pkg' : '') + '" data-preset="' + p.id + '" aria-pressed="' + on + '">' +
         '<strong>' + esc(p.name) + '</strong><small>' + esc(p.built) + '</small>' +
-        '<span class="pp">' + (sc ? (r.total === 0 ? 'Fully covered' : money(r.total) + (jan ? ' for the spring, paid before the student starts' : ', paid yearly')) : priceText(r)) + '</span></button>';
+        '<span class="pp">' + priceText(r) + '</span></button>';
     }
     function renderPath() {
       app.querySelectorAll('[data-path]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.path === st.path)); });
@@ -424,13 +398,13 @@
       $('#sec-path').innerHTML =
         '<p class="hint">Pick the one closest to your family, then change anything below.</p>' +
         '<div class="presets">' + plans.map(presetCard).join('') + '</div>' +
-        (pkgs.length ? '<p class="group-h">Partner School Packages</p>' +
-          '<p class="hint">Full-time online school with a full-week RadAcad membership, one price for the year.</p>' +
+        (pkgs.length ? '<div class="pkg-group"><p class="group-h">Partner School Packages</p>' +
+          '<p class="hint">Full-time online school plus a full-week RadAcad membership, all in one monthly price.</p>' +
           '<div class="presets">' + pkgs.map(presetCard).join('') + '</div>' +
           '<div class="explain">' +
             '<details><summary>' + esc(EX.icl.title) + '</summary><p>' + linked(EX.icl) + '</p></details>' +
             (school('aeon').hidden ? '' : '<details><summary>' + esc(EX.aeon.title) + '</summary><p>' + linked(EX.aeon) + '</p></details>') +
-          '</div>' : '');
+          '</div></div>' : '');
     }
     function renderDays() {
       var pkg = isPkg(), n = st.days.length, locked = classDays();
@@ -438,7 +412,7 @@
       function card(k, label, tag) {
         var base = M.prices[k], disc = Math.round(base * (1 - pct));
         var txt = money(disc) + '/mo' + (pct ? ' <s>' + money(base) + '</s>' : '');
-        if (credit && !isUpfront()) txt += '<em>' + (disc * pay <= credit ? 'Covered by ESA' + (st.need ? ' + scholarship' : '') : money(Math.max(0, disc - credit / pay)) + '/mo with ' + (st.esa ? 'ESA' : 'scholarship')) + '</em>';
+        if (credit && !pkg) txt += '<em>' + (disc * pay <= credit ? 'Covered by ESA' + (st.need ? ' + scholarship' : '') : money(Math.max(0, disc - credit / pay)) + '/mo with ' + (st.esa ? 'ESA' : 'scholarship')) + '</em>';
         var active = k === 2 ? n <= 2 : n === k;
         return '<button type="button" class="choice tier' + (pkg ? ' locked' : '') + '" data-tier="' + k + '" aria-pressed="' + active + '">' +
           (tag ? '<span class="tag-std">' + tag + '</span>' : '') + '<strong>' + label + '</strong><small>' + txt + '</small></button>';
@@ -462,7 +436,7 @@
         '<label class="toggle"><input type="checkbox" id="rma-' + id + '" data-toggle="' + id + '"' + (on ? ' checked' : '') + '><span>Add</span></label></div>';
     }
     function blockStepper(id) {
-      var a = id === 'checkin' ? A.checkin : A.coaching, n = st[id];
+      var a = A.coaching, n = st[id];
       return stepper(id, n, a.maxBlocks, a, a.name + ', 30-minute blocks',
         n ? blockText(n) + ', ' + money(a.blockPrice * n) + '/mo' : money(a.blockPrice) + '/mo per 30-minute block');
     }
@@ -485,7 +459,7 @@
     function renderAddons() {
       $('#sec-addons').innerHTML =
         (closeOK() ? toggle('close', st.close, A.close) : '') +
-        blockStepper('checkin') + blockStepper('coach') +
+        blockStepper('coach') +
         stepper('single', st.single, A.single.max, A.single, 'Single-subject classes', money(A.single.price) + '/mo each');
       renderClubs();
       var body = $('#sec-classes-body');
@@ -495,7 +469,7 @@
         return;
       }
       var cur = st.days.length, curPrice = membershipPrice(cur);
-      body.innerHTML = '<p class="addon-desc">Grades ' + G.minGrade + '\u2013' + G.maxGrade + '. ' + esc(G.desc) + '</p><div class="classes">' + G.classes.map(function (c) {
+      body.innerHTML = '<p class="addon-desc">Grades ' + G.minGrade + '\u2013' + G.maxGrade + '. ' + esc(G.desc) + ' ' + esc(G.scheduleNote) + '</p><div class="classes">' + G.classes.map(function (c) {
         var on = st.classes.indexOf(c.id) !== -1, hit = on ? null : clash(c);
         var missing = c.days.filter(function (d) { return st.days.indexOf(d) === -1; });
         var flag = '';
@@ -549,24 +523,22 @@
         return '<div class="icl-row"><span>' + esc(c.n) + '<small>' + (c.ms ? 'middle school' : 'high school') + '</small></span>' +
           '<button type="button" data-add-icl="' + esc(c.n) + '"' + (on || full ? ' disabled' : '') + '>' + (on ? 'Added' : 'Add') + '</button></div>';
       }).join('') : '<div class="icl-row"><span>No courses match. Try a shorter search.</span></div>';
-      var unit = jan ? ' for spring' : '/year';
+      var P = startOf(st.start).payments;
       $('#sec-icl-picked').innerHTML =
         (st.grade !== null ? '<p class="note level-note">Showing ' + (st.grade <= 8 ? 'middle school' : 'high school') + ' courses for grade ' + st.grade + '.</p>' : '') +
         (st.iclDropped && st.iclDropped.length ? '<p class="rule" role="status">We took ' + esc(st.iclDropped.join(' and ')) + ' off the plan, since ' + (st.iclDropped.length > 1 ? 'they\u2019re ' : 'it\u2019s a ') + (st.grade <= 8 ? 'high school' : 'middle school') + (st.iclDropped.length > 1 ? ' courses.' : ' course.') + '</p>' : '') +
         (full ? '<p class="note">That\u2019s the limit of three courses.</p>' : '') + st.icl.map(function (c, i) {
         return '<div class="picked-row"><span>' + esc(c.n) + '</span><span class="fmt">' +
-          '<button type="button" data-fmt="' + i + '" data-live="1" aria-pressed="' + c.live + '">Live ' + money(jan ? IC.liveJan : IC.live) + unit + '</button>' +
-          '<button type="button" data-fmt="' + i + '" data-live="0" aria-pressed="' + !c.live + '">Self-paced ' + money(jan ? IC.asyncJan : IC.async) + unit + '</button>' +
+          '<button type="button" data-fmt="' + i + '" data-live="1" aria-pressed="' + c.live + '">Live ' + money((jan ? IC.liveJan : IC.live) / P) + '/mo' + '</button>' +
+          '<button type="button" data-fmt="' + i + '" data-live="0" aria-pressed="' + !c.live + '">Self-paced ' + money((jan ? IC.asyncJan : IC.async) / P) + '/mo' + '</button>' +
           '<button type="button" class="rm" data-rm-icl="' + i + '" aria-label="Remove ' + esc(c.n) + '">\u00d7</button></span></div>';
-      }).join('') + (st.icl.length ? '<p class="note">ICL courses are paid in full before the student starts, together with the ' + (jan ? 'spring' : 'year') + '\u2019s membership. ' +
+      }).join('') + (st.icl.length ? '<p class="note">' +
         esc(st.icl.some(function (c) { return c.live; }) ? IC.liveText : IC.asyncText) + '</p>' : '');
     }
     function renderStart() {
       $('#sec-start').innerHTML = '<div class="choices cols-2">' + data.starts.map(function (s) {
         return '<button type="button" class="choice" data-start="' + s.id + '" aria-pressed="' + (st.start === s.id) + '"><strong>' + esc(s.label) + '</strong><small>' + esc(s.desc) + '</small></button>';
       }).join('') + '</div>' +
-        (isUpfront() ? '<p class="note">Plans with ICL or Aeon are paid in full before the student starts' + (st.start === 'jan' ? ', for the spring semester' : '') + '.</p>' : '') +
-
         (st.start === 'jan' && !st.esa ? '<p class="note">' + esc(data.esaJanNo) + '</p>' : '');
     }
     function renderForm() {
@@ -648,17 +620,18 @@
     function fineLines(r) {
       var pkg = isPkg(), sc = school(st.school), F2 = data.fine, hasIcl = st.school.indexOf('icl') === 0 || st.icl.length, aeon = st.school === 'aeon';
       var out = [];
-      out.push(r.up ? F2.fullYearMember.replace('{school}', aeon ? 'Aeon' : 'ICL') : F2.monthToMonth);
+      var yc = isYearCommit();
+      out.push(yc ? F2.fullYearMember.replace('{school}', aeon ? 'Aeon' : 'ICL') : F2.monthToMonth);
       if (hasIcl) {
         out.push(F2.icl);
         if (r.jan) out.push(F2.iclJan.replace('{deposit}', pkg && !aeon ? money(sc.deposit) : 'ICL'));
       }
       if (aeon) out.push(F2.aeon);
-      if (!r.up) out.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn\u2019t a fit.');
+      if (!yc) out.push('New families: your first drop-in day is free, and your first month of membership is refundable if it isn\u2019t a fit.');
       if (st.classes.length) { out.push(F2.groupSemester); out.push('Classes on the same days share a membership day, so two Monday/Wednesday classes still fit a two-day membership.'); }
       if (st.merit) out.push('The JHSC award is 50% off membership for first place and 25% for second, awarded annually by committee.');
       if (st.need) out.push('Need-based awards are set by the Foundation committee and can go toward membership, classes, 1:1, or an online school package.');
-      if (!r.up) out.push('Prepay by the semester or the year for 5% off.');
+      if (!yc) out.push('Prepay by the semester or the year for 5% off.');
       return out;
     }
     function renderSummary() {
@@ -667,22 +640,14 @@
       $('#sum-lines').innerHTML = r.lines.map(function (l) {
         return '<li' + (l.cls ? ' class="' + l.cls + '"' : '') + '><span>' + esc(l.label) + '</span><span>' + (l.text ? esc(l.text) : money(l.amount) + l.unit) + '</span></li>';
       }).join('') +
-        (r.up ? '' :
           (st.esa ? '<li class="sub"><span>Wyoming ESA, ' + money(S.esaAnnual) + ' a year over ' + r.payments + ' payments</span><span>\u2212' + money(Math.min(S.esaAnnual, r.yearly) / r.payments) + '/mo</span></li>' : '') +
-          (st.need ? '<li class="sub"><span>Need-based scholarship, if awarded (' + money(st.need) + ' a year)</span><span>\u2212' + money(Math.min(st.need, Math.max(0, r.yearly - (st.esa ? S.esaAnnual : 0))) / r.payments) + '/mo</span></li>' : ''));
+          (st.need ? '<li class="sub"><span>Need-based scholarship, if awarded (' + money(st.need) + ' a year)</span><span>\u2212' + money(Math.min(st.need, Math.max(0, r.yearly - (st.esa ? S.esaAnnual : 0))) / r.payments) + '/mo</span></li>' : '');
 
-      if (r.up) {
-        $('#sum-lbl').textContent = 'Total for the ' + r.period + ', paid before the student starts';
-        $('#sum-big').textContent = money(r.total);
-        $('.mb-num').textContent = money(r.total); $('.mb-per').textContent = r.jan ? ' spring' : '/yr';
-        $('#sum-esa').textContent = r.total === 0 ? 'Nothing out of pocket.' : 'Your part: ' + money(r.total) + ', paid before the student starts.';
-      } else {
         var credName = st.esa && st.need ? 'ESA and scholarship' : st.esa ? 'Wyoming ESA' : 'scholarship';
         $('#sum-lbl').textContent = 'Per month' + (r.credits ? ' with ' + credName : '') + ', ' + (r.jan ? 'five payments' : 'nine payments');
         $('#sum-big').textContent = money(r.monthlyAfter);
         $('.mb-num').textContent = money(r.monthlyAfter); $('.mb-per').textContent = '/mo';
         $('#sum-esa').textContent = r.monthlyAfter === 0 ? 'Nothing out of pocket.' : 'Your part: ' + money(r.monthlyAfter) + ' a month, ' + (r.jan ? 'five' : 'nine') + ' payments.';
-      }
       $('#sum-fine').innerHTML = '<li class="confirm">' + esc(S.finePrint) + '</li>' + fineLines(r).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
       $('#sum-cta').hidden = st.sent;
     }
@@ -769,7 +734,7 @@
       st.preset = null;
       if (d.tier) setDayCount(+d.tier);
       else if (d.day) toggleDay(d.day);
-      else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.maxBlocks : d.inc === 'checkin' ? A.checkin.maxBlocks : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
+      else if (d.inc) { var mx = d.inc === 'coach' ? A.coaching.maxBlocks : A.single.max; if (st[d.inc] < mx) st[d.inc]++; }
       else if (d.dec) { if (st[d.dec] > 0) st[d.dec]--; }
       else if (d.dept) st.dept = d.dept;
       else if (d.addIcl) { if (st.icl.length < IC.max) st.icl.push({ n: d.addIcl, live: true }); }
@@ -877,12 +842,12 @@
         plan: {
           name: preset ? preset.name : isPkg() ? sc.name : membershipName(st.days.length) + ' plan',
           days: st.days,
-          billing: r.up ? 'upfront' : 'monthly',
+          billing: 'monthly',
           lines: r.lines.map(function (l) { return { label: l.label, amount: Math.round(l.amount), unit: l.text ? ' (' + l.text.toLowerCase() + ')' : l.unit }; }).concat(
             st.clubs.map(function (id) { var c = club(id); return { label: c.name + ', ' + c.when + ': ' + (st.clubTerms[id] || []).map(function (t) { var x = c.terms.filter(function (y) { return y.id === t; })[0]; return x.label + ' (' + x.dates + ')'; }).join('; '), amount: 0, unit: ' (sessions)' }; })),
-          monthly: r.up ? 0 : Math.round(r.monthly),
-          total: r.up ? Math.round(r.total) : Math.round(r.monthlyAfter),
-          totalLabel: r.up ? 'Total for the ' + r.period + ', paid before the student starts' : 'Per month' + (r.credits ? ' after ESA and scholarships' : '') + ', ' + (r.jan ? 'five' : 'nine') + ' payments',
+          monthly: Math.round(r.monthly),
+          total: Math.round(r.monthlyAfter),
+          totalLabel: 'Per month' + (r.credits ? ' after ESA and scholarships' : '') + ', ' + (r.jan ? 'five' : 'nine') + ' payments',
           classFees: '',
           esa: st.esa ? 'Wyoming ESA applied' : 'No ESA'
         }

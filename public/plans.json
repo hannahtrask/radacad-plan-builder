@@ -30,7 +30,7 @@
       "name": "ICL Academy, live classes",
       "deposit": 900,
       "chip": "ICL classes",
-      "desc": "Full online school with live ICL teachers. Full-week membership and daily coaching included. One price for the year.",
+      "desc": "Full online school with live ICL teachers. Full-week membership and daily coaching included.",
       "yearly": 20700,
       "janPrice": 10350,
       "membershipMonthly": 1200
@@ -40,7 +40,7 @@
       "name": "ICL Academy, self-paced",
       "deposit": 600,
       "chip": "ICL classes",
-      "desc": "The same school with self-paced courses. Full-week membership and daily coaching included. One price for the year.",
+      "desc": "The same school with self-paced courses. Full-week membership and daily coaching included.",
       "yearly": 17550,
       "janPrice": 8775,
       "membershipMonthly": 1200
@@ -49,7 +49,7 @@
       "id": "aeon",
       "name": "Aeon School",
       "chip": "Aeon classes",
-      "desc": "Seminar-style partner school. Full-week membership included. One price for the year.",
+      "desc": "Seminar-style partner school. Full-week membership included.",
       "yearly": 27300,
       "janPrice": 22500,
       "membershipMonthly": 1200
@@ -71,19 +71,12 @@
       "desc": "Check-ins every hour on every membership day. For high schoolers who need more structure.",
       "minGrade": 9
     },
-    "checkin": {
-      "name": "Weekly Check-In",
-      "blockPrice": 325,
-      "blockMin": 30,
-      "maxBlocks": 2,
-      "desc": "A weekly session with a coach to plan the week, review what’s due, and keep online school or independent work on track. Add 30-minute blocks."
-    },
     "coaching": {
       "name": "1:1 Coaching or Tutoring",
       "blockPrice": 325,
       "blockMin": 30,
       "maxBlocks": 10,
-      "desc": "Time with a coach or tutor in any subject. Add 30-minute blocks."
+      "desc": "Time with a coach or tutor each week. Use it for a weekly check-in to plan the week and keep online school or independent work on track, or for tutoring in any subject. Add 30-minute blocks."
     },
     "single": {
       "name": "Individual Single-Subject Class",
@@ -878,7 +871,7 @@
       "name": "Online School Check-In",
       "built": "Two-day membership + a weekly 30-minute check-in",
       "set": {
-        "checkin": 1
+        "coach": 1
       }
     },
     {
@@ -1021,7 +1014,6 @@
       "step": 500
     }
   },
-  "addHint": "1:1 coaching and single-subject classes are month to month. Small group classes run by the semester. ICL courses are a full-year commitment.",
   "youngerNote": {
     "text": "Have a younger student? We build custom 1:1 plans for kids below 5th grade.",
     "link": "Tell us about your younger student"
@@ -1029,12 +1021,12 @@
   "fine": {
     "monthToMonth": "Membership is month to month with 30 days’ notice.",
     "fullYearMember": "Your membership runs for the full year of {school} enrollment.",
-    "icl": "ICL tuition is paid in full before the student starts. A student who leaves mid-year owes the semester they attended. A January ICL start is a spring-semester commitment.",
+    "icl": "A student who leaves mid-year owes the semester they attended. A January ICL start is a spring-semester commitment.",
     "iclJan": "January 2027 families can withdraw by January 31 for a full refund minus a non-refundable {deposit} deposit.",
-    "aeon": "Aeon tuition is paid in full before the student starts and is non-refundable once the student has started.",
+    "aeon": "Aeon tuition is non-refundable once the student has started.",
     "groupSemester": "Small group classes are a semester commitment."
   },
-  "esaQuarterly": "ESA funds release quarterly ($1,750 a quarter), so you pay up front and use ESA through the year.",
+  "esaQuarterly": "ESA funds release quarterly ($1,750 a quarter).",
   "clubs": [
     {
       "id": "robotics",
