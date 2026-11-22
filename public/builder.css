@@ -118,7 +118,7 @@ textarea { resize: vertical; min-height: 4.5rem; }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--teal); outline-offset: 1px; border-color: var(--ink); }
 .f.invalid input, .f.invalid select { border-color: var(--purple); box-shadow: 0 0 0 1px var(--purple); }
 .f.invalid label::after { content: " (required)"; color: var(--purple-deep); font-weight: 600; }
-.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.hp { display: none; } /* spam trap: hidden so browsers never autofill it; bots that fill every field still trip it */
 .form-error { color: var(--purple-deep); font-weight: 500; margin-top: 0.9rem; }
 .form-error:empty { display: none; }
 .btn { font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0.7rem 1.5rem;

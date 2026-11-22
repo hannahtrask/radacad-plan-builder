@@ -362,7 +362,7 @@
           f('email', 'Email', 'email', true, 'email') + f('phone', 'Mobile phone', 'tel', true, 'tel') +
           f('studentFirst', 'Student\u2019s first name', 'text', true, 'off') + f('age', 'Student\u2019s age or grade', 'text', true, 'off') +
           '<div class="f wide"><label for="rma-y-notes">What are you looking for? <span class="opt-tag">(optional)</span></label><textarea id="rma-y-notes" name="notes" rows="3" placeholder="Days, subjects, learning needs, how your student is doing now">' + esc(F.notes || '') + '</textarea></div>' +
-        '</div><div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label></div>' +
+        '</div><div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" name="rma_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore></label></div>' +
         '<p class="form-error" role="alert"></p><button type="submit" class="btn">Send to RadAcad</button></form>';
     }
     function presetOK(p) { return !p.grades || st.grade === null || (st.grade >= p.grades[0] && st.grade <= p.grades[1]); }
@@ -567,7 +567,7 @@
           '<div class="f wide"><label for="rma-f-notes">Anything we should know? <span class="opt-tag">(optional)</span></label>' +
             '<textarea id="rma-f-notes" name="notes" rows="3" placeholder="Learning needs, travel plans, best time to call">' + esc(F.notes || '') + '</textarea></div>' +
         '</div>' +
-        '<div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label></div>' +
+        '<div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" name="rma_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore></label></div>' +
         '<p class="form-error" role="alert"></p>' +
         '<button type="submit" class="btn submit">Send my plan</button></form>';
     }
@@ -695,7 +695,7 @@
       if (bad.length) { err.textContent = bad.length === 1 ? 'Fill in the highlighted field to send.' : 'Fill in the ' + bad.length + ' highlighted fields to send.'; bad[0].focus(); return; }
       var F = {}; new FormData(form).forEach(function (v, k) { F[k] = String(v).trim(); });
       var payload = {
-        company: F.company || '', page: location.href, type: 'younger',
+        company: F.rma_trap || '', page: location.href, type: 'younger',
         parent: { first: F.parentFirst, last: F.parentLast, email: F.email, phone: F.phone },
         student: { first: F.studentFirst, grade: F.age },
         start: startOf(st.start).label, heard: '', notes: F.notes || '',
@@ -838,7 +838,7 @@
       var r = compute(), sc = school(st.school), fall = st.start === 'fall';
       var preset = st.preset && data.presets.filter(function (p) { return p.id === st.preset; })[0];
       var payload = {
-        company: F.company || '',
+        company: F.rma_trap || '',
         page: location.href,
         parent: { first: F.parentFirst, last: F.parentLast, email: F.email, phone: F.phone },
         student: { first: F.studentFirst, grade: String(st.grade) },
