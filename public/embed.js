@@ -649,7 +649,7 @@
         $('.mb-num').textContent = money(r.monthlyAfter); $('.mb-per').textContent = '/mo';
         $('#sum-esa').textContent = r.monthlyAfter === 0 ? 'Nothing out of pocket.' : 'Your part: ' + money(r.monthlyAfter) + ' a month, ' + (r.jan ? 'five' : 'nine') + ' payments.';
       $('#sum-fine').innerHTML = '<li class="confirm">' + esc(S.finePrint) + '</li>' + fineLines(r).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
-      $('#sum-cta').hidden = st.sent;
+      syncCta();
     }
 
     /* ---------- render all, keep focus ---------- */
@@ -797,6 +797,19 @@
       if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, reduceMotion ? 0 : 450);
     }
     $('#sum-cta').addEventListener('click', goSend);
+
+    // The price-side button only shows when the form's own "Send my plan" button is off screen.
+    // In the phone sheet it always shows, since the sheet covers the form.
+    var submitOnScreen = false, ctaIO = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+      es.forEach(function (x) { submitOnScreen = x.isIntersecting; });
+      syncCta();
+    }) : null;
+    function watchSubmit() {
+      if (!ctaIO) return;
+      ctaIO.disconnect(); submitOnScreen = false;
+      var b = $('#sec-form .submit'); if (b) ctaIO.observe(b);
+    }
+    function syncCta() { $('#sum-cta').hidden = st.sent || (submitOnScreen && !st.sheet); }
     $('.mb-week').addEventListener('click', function () { st.sheet = true; render(); $('.sheet-close').focus(); });
     $('.sheet-close').addEventListener('click', function () { st.sheet = false; render(); });
 
@@ -862,7 +875,7 @@
       send.then(function () {
         st.sent = true;
         track('plan_builder_submit', { plan: payload.plan.name, value: payload.plan.total, billing: payload.plan.billing, currency: 'USD' });
-        renderForm(); render();
+        renderForm(); watchSubmit(); render();
         var h = $('#h-send'); if (h) h.focus({ preventScroll: true });
       }).catch(function (error) {
         console.error('[plan builder]', error);
@@ -880,6 +893,7 @@
 
     renderForm();
     render();
+    watchSubmit();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
