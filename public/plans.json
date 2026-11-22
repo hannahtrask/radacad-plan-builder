@@ -1035,13 +1035,13 @@
       "type": "club",
       "minGrade": 0,
       "maxGrade": 8,
-      "when": "Wednesdays, 2:00–3:30",
+      "when": "Mondays, 2:00–3:30",
       "days": [
-        "Wed"
+        "Mon"
       ],
       "sessionsTime": [
         [
-          "Wed",
+          "Mon",
           "14:00",
           "15:30"
         ]
