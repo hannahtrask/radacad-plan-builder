@@ -1,6 +1,6 @@
 {
   "settings": {
-    "endpoint": "https://script.google.com/macros/s/AKfycbwG0wQECJWQ414XEhIuqiLTlesWfWtECg-dONCT2qLkn7ypW90IgwWBKUo8STz5Kst5DQ/exec",
+    "endpoint": "https://script.google.com/macros/s/AKfycby9Qyk4muxUPWHlw8YQ5GVM2oLbAyTe-HI854gXbVAXXj2U8Tzv1UV39JioyUtPQ2Iheg/exec",
     "bookingUrl": "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ1Q8gq1TkHZIXavogiSe8cKRCuFSOzGxsQJu9oksFk7COsEV5nyFfKEbr_3VWSO_biPIfNgQI6-",
     "callLength": "45-minute",
     "followUp": "within 1–2 business days",
